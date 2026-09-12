@@ -1,9 +1,0 @@
-/*
- * Stylesheet for consumers of @snapcheck/core-components.
- *
- * `@source` is explicit because the Tailwind entry lives in @snapcheck/tokens;
- * without it, Tailwind would scan that package instead of this one.
- */
-@import '@snapcheck/tokens/theme.css';
-
-@source "./";

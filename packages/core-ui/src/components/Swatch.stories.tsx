@@ -1,6 +1,6 @@
-import { paletteSwatches } from '@snapcheck/tokens';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { paletteSwatches } from '../tokens';
 import { Swatch } from './Swatch';
 
 const meta = {

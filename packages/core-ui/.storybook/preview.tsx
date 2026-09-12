@@ -1,7 +1,7 @@
-import { fontHref } from '@snapcheck/tokens';
 import type { Decorator, Preview } from '@storybook/react-vite';
 
 import { ThemeProvider } from '../src/theme/ThemeProvider';
+import { fontHref } from '../src/tokens';
 
 import '../src/styles.css';
 

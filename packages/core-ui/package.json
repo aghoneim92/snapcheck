@@ -1,36 +1,25 @@
 {
-  "name": "@snapcheck/core-components",
+  "name": "@snapcheck/core-ui",
   "version": "0.2.0",
   "private": true,
-  "description": "Snapcheck Core — React implementation of the shared design system.",
-  "files": [
-    "dist"
-  ],
+  "description": "Snapcheck Core — design tokens, React components, and the spec sheet that shows them.",
   "type": "module",
   "sideEffects": [
     "*.css"
   ],
   "exports": {
     ".": "./src/index.ts",
-    "./styles.css": "./src/styles.css"
-  },
-  "publishConfig": {
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "./styles.css": "./dist/core-components.css"
-    }
+    "./styles.css": "./src/styles.css",
+    "./theme.css": "./src/tokens/theme.css",
+    "./tokens.css": "./src/tokens/tokens.css"
   },
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
+    "dev": "vite",
     "typecheck": "tsc",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@snapcheck/tokens": "workspace:*",
     "cn": "^0.2.6"
   },
   "devDependencies": {
@@ -38,7 +27,6 @@
     "@storybook/addon-docs": "^10.6.0",
     "@storybook/react-vite": "^10.6.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^24.10.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
@@ -51,6 +39,12 @@
   },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "tailwindcss": {
+      "optional": true
+    }
   }
 }

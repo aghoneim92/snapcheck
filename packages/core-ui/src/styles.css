@@ -1,0 +1,9 @@
+/*
+ * Stylesheet for consumers of @snapcheck/core-ui.
+ *
+ * `@source` is explicit so Tailwind scans the whole `src` tree, not just the
+ * `tokens` directory the theme entry lives in.
+ */
+@import './tokens/theme.css';
+
+@source "./";

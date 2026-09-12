@@ -8,10 +8,12 @@ design file.
 ## Layout
 
 ```
-packages/tokens            @snapcheck/tokens            palette, type scale, grid — CSS + typed mirror
-packages/core-components   @snapcheck/core-components   the components, with a story each
-apps/showcase              @snapcheck/showcase          Vite app rendering the whole spec sheet
+packages/core-ui   @snapcheck/core-ui   tokens (src/tokens), the components with a story each,
+                                        and the spec sheet (src/showcase)
 ```
+
+There is no build step: neighbouring packages and apps import `@snapcheck/core-ui`
+as TypeScript source and compile it with their own Vite + Tailwind setup.
 
 ## Getting started
 
@@ -27,7 +29,6 @@ pnpm install
 | ---------------- | --------------------------------------------- |
 | `pnpm dev`       | Spec sheet at <http://localhost:5173>         |
 | `pnpm storybook` | Component explorer at <http://localhost:6006> |
-| `pnpm build`     | Builds every package, then the app            |
 | `pnpm check`     | `format:check` + `lint` + `typecheck`         |
 
 ## How theming works
@@ -36,15 +37,15 @@ One attribute. `data-theme="dark"` on `<html>` swaps every token; no class
 rewriting, no second stylesheet, no flash of the wrong palette.
 
 ```tsx
-import { DesignSystemShowcase, ThemeProvider } from '@snapcheck/core-components';
-import '@snapcheck/core-components/styles.css';
+import { DesignSystemShowcase, ThemeProvider } from '@snapcheck/core-ui';
+import '@snapcheck/core-ui/styles.css';
 
 <ThemeProvider>
   <DesignSystemShowcase />
 </ThemeProvider>;
 ```
 
-Tokens are declared once in `packages/tokens/src/tokens.css` as `--sc-*` custom
+Tokens are declared once in `packages/core-ui/src/tokens/tokens.css` as `--sc-*` custom
 properties, then mapped onto Tailwind's namespace with `@theme inline` so that
 utilities emit `var(--sc-…)` rather than a baked-in value. That indirection is
 what makes the single-attribute swap possible.
@@ -54,19 +55,15 @@ drive it from outside, which is how the Storybook toolbar works.
 
 ## Toolchain notes
 
-- **TypeScript 7** (`typescript@^7.0.2`) — the native compiler. Two ecosystem
-  packages read compiler-API internals it no longer exposes, so they are not
-  used: `vite-plugin-dts` (declarations come from `tsc -p tsconfig.build.json`)
-  and `react-docgen-typescript` (Storybook uses the Babel-based `react-docgen`).
+- **TypeScript 7** (`typescript@^7.0.2`) — the native compiler. It no longer
+  exposes the compiler-API internals `react-docgen-typescript` reads, so
+  Storybook uses the Babel-based `react-docgen` instead.
 - **oxlint + oxfmt** replace ESLint and Prettier. oxfmt also sorts imports and
   Tailwind classes; it reads the v4 stylesheet to do so, which is why
-  `sortTailwindcss.stylesheet` points at `packages/core-components/src/styles.css`.
+  `sortTailwindcss.stylesheet` points at `packages/core-ui/src/styles.css`.
 - **`cn`** (shadcn's merge engine) replaces `clsx` + `tailwind-merge`. It is told
   about our type-scale names in `src/lib/cn.ts` — without that it reads
   `text-h1` as a colour and drops one of `text-h1 text-ink`.
-- Workspace packages resolve to **source**, not `dist`, so there is no build step
-  between editing a component and seeing it. `publishConfig` points at `dist` for
-  when these are published.
 
 ## Deviations from the design file
 

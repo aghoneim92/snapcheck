@@ -57,7 +57,7 @@ export * from './components/Icons';
 export { DesignSystemShowcase } from './showcase/DesignSystemShowcase';
 export type { DesignSystemShowcaseProps } from './showcase/DesignSystemShowcase';
 
-// Tokens, re-exported so consumers need one dependency
+// Tokens
 export {
   colors,
   controlHeights,
@@ -67,5 +67,5 @@ export {
   radii,
   spacing,
   typeScale,
-} from '@snapcheck/tokens';
-export type { ColorToken, ThemedColor, ThemeName, TypeSpec } from '@snapcheck/tokens';
+} from './tokens';
+export type { ColorToken, ThemedColor, ThemeName, TypeSpec } from './tokens';

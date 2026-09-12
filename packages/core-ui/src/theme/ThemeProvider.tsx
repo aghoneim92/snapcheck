@@ -1,4 +1,3 @@
-import type { ThemeName } from '@snapcheck/tokens';
 import {
   createContext,
   use,
@@ -8,6 +7,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+
+import type { ThemeName } from '../tokens';
 
 export interface ThemeContextValue {
   theme: ThemeName;

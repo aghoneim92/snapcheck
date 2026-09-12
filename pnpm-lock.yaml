@@ -176,48 +176,8 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
-  apps/showcase:
+  packages/core-ui:
     dependencies:
-      '@snapcheck/core-components':
-        specifier: workspace:*
-        version: link:../../packages/core-components
-      react:
-        specifier: ^19.3.0
-        version: 19.3.0
-      react-dom:
-        specifier: ^19.3.0
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@tailwindcss/vite':
-        specifier: ^4.3.3
-        version: 4.3.3(vite@8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0))
-      '@types/node':
-        specifier: ^24.10.1
-        version: 24.13.4
-      '@types/react':
-        specifier: ^19.3.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: ^19.3.0
-        version: 19.3.0(@types/react@19.3.0)
-      '@vitejs/plugin-react':
-        specifier: ^6.1.1
-        version: 6.1.1(vite@8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0))
-      tailwindcss:
-        specifier: ^4.3.3
-        version: 4.3.3
-      typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
-      vite:
-        specifier: ^8.3.0
-        version: 8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)
-
-  packages/core-components:
-    dependencies:
-      '@snapcheck/tokens':
-        specifier: workspace:*
-        version: link:../tokens
       cn:
         specifier: ^0.2.6
         version: 0.2.6
@@ -234,9 +194,6 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0))
-      '@types/node':
-        specifier: ^24.10.1
-        version: 24.13.4
       '@types/react':
         specifier: ^19.3.0
         version: 19.3.0
@@ -264,15 +221,6 @@ importers:
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)
-
-  packages/tokens:
-    devDependencies:
-      tailwindcss:
-        specifier: ^4.3.3
-        version: 4.3.3
-      typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
 
 packages:
 
@@ -3020,6 +2968,7 @@ snapshots:
   '@types/node@24.13.4':
     dependencies:
       undici-types: 7.18.2
+    optional: true
 
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
     dependencies:
@@ -3738,7 +3687,8 @@ snapshots:
       '@typescript/typescript-win32-arm64': 7.0.2
       '@typescript/typescript-win32-x64': 7.0.2
 
-  undici-types@7.18.2: {}
+  undici-types@7.18.2:
+    optional: true
 
   unplugin@2.3.11:
     dependencies:

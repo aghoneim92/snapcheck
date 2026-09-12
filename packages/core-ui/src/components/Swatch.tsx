@@ -1,6 +1,5 @@
-import { colors, type ColorToken } from '@snapcheck/tokens';
-
 import { cn } from '../lib/cn';
+import { colors, type ColorToken } from '../tokens';
 
 export interface SwatchProps {
   token: ColorToken;

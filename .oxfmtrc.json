@@ -9,7 +9,7 @@
   "arrowParens": "always",
   "sortImports": true,
   "sortTailwindcss": {
-    "stylesheet": "./packages/core-components/src/styles.css",
+    "stylesheet": "./packages/core-ui/src/styles.css",
     "functions": ["cn"]
   },
   "ignorePatterns": ["dist", "storybook-static", "pnpm-lock.yaml"]

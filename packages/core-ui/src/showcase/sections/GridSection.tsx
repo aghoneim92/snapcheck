@@ -1,6 +1,5 @@
-import { radii, spacing } from '@snapcheck/tokens';
-
 import { SpecLabel, SpecSection } from '../../components/SpecSection';
+import { radii, spacing } from '../../tokens';
 
 const radiusSamples = [
   { value: radii.surface, label: '0 SURFACE' },

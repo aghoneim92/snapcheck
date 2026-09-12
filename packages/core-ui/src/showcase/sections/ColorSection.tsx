@@ -1,7 +1,6 @@
-import { colors, paletteSwatches } from '@snapcheck/tokens';
-
 import { SpecLabel, SpecSection } from '../../components/SpecSection';
 import { Swatch } from '../../components/Swatch';
+import { colors, paletteSwatches } from '../../tokens';
 
 const textRoles = [
   { name: 'Primary ink', token: 'ink', className: 'text-base font-semibold text-ink' },

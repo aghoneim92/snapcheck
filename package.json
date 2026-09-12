@@ -3,10 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm -r build",
-    "dev": "pnpm --filter @snapcheck/showcase dev",
-    "storybook": "pnpm --filter @snapcheck/core-components storybook",
-    "build-storybook": "pnpm --filter @snapcheck/core-components build-storybook",
+    "dev": "pnpm --filter @snapcheck/core-ui dev",
+    "storybook": "pnpm --filter @snapcheck/core-ui storybook",
+    "build-storybook": "pnpm --filter @snapcheck/core-ui build-storybook",
     "typecheck": "pnpm -r typecheck",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
