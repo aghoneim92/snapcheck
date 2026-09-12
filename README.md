@@ -70,21 +70,42 @@ drive it from outside, which is how the Storybook toolbar works.
 
 ## Deviations from the design file
 
-Three token changes, all to fix contrast the source palette did not account for.
-Light mode is pixel-identical; only dark mode differs.
+Every change below fixes contrast the source palette did not account for, and
+has been synced back to `Snapcheck Core v2.dc.html` in the design project.
+
+**Surfaces vs text.** Three tokens were split because one name was doing two jobs:
 
 - **`--sc-slab`** — the code block and `PASS` tag used `--ink` as a _surface_.
   `--ink` is a text token and inverts, so in dark mode both became pale text on
-  a pale plate (the code block measured 1.1:1 — effectively invisible).
-  `--sc-slab` stays dark in both themes.
-- **`--sc-accent-text`** — accent used as text on paper measured 3.42:1 in dark.
-  The text-only variant is lightened to `#4C85B8` (5.2:1); buttons still use
-  `--sc-accent`.
-- Light mode's `--label`, `--border-hover` and `--disabled-border` were
-  self-referential in the source (`--label: var(--label)`) and resolved to
-  nothing. Concrete values are supplied; `--label` uses the `#6E6A62` the
-  design's own caption lists.
+  a pale plate (the code block measured 1.1:1). `--sc-slab` stays dark.
+- **`--sc-accent-text`** — accent used as text on paper measured 3.42:1 in dark;
+  the text-only variant is `#4C85B8` (4.69:1). Buttons still use `--sc-accent`.
+- **`--sc-accent-text-hover`** — the Quiet button reused `--sc-accent-hover` for
+  its hover _text_. That had to be split before the fill could change (below),
+  or Quiet's dark hover would have dropped to 2.47:1.
 
-Two contrast shortfalls are left as designed, since they are deliberate brand
-colours and the text stays legible: the amber `REVIEW` tag (4.48:1 light,
-3.69:1 dark) and the primary button's dark-mode hover fill (3.92:1).
+**Colour values.**
+
+| Token               | Theme | Was       | Now       | Why                                                         |
+| ------------------- | ----- | --------- | --------- | ----------------------------------------------------------- |
+| `--sc-accent-hover` | dark  | `#4C85B8` | `#2C5880` | Darken on hover, not lighten: white text went 3.92 → 7.46:1 |
+| `--sc-accent-press` | dark  | `#2C5880` | `#234870` | Stays distinct from the new hover                           |
+| `--sc-amber`        | light | `#A66A05` | `#A46804` | White `REVIEW` text 4.48 → 4.60:1 (1% darker)               |
+| `--sc-amber`        | dark  | `#B4790F` | `#A06B0D` | White `REVIEW` text 3.70 → 4.56:1 (11% darker, visible)     |
+
+Light mode's `--label`, `--border-hover` and `--disabled-border` were also
+self-referential in the source (`--label: var(--label)`) and resolved to nothing;
+they now have concrete values.
+
+## Accessibility audit
+
+Every story was audited in both themes with axe-core 4.10 against WCAG 2.0,
+2.1 and 2.2 A/AA: **124 runs, 0 violations**. Transitions were disabled during
+the audit so colours were measured at rest, not mid-animation.
+
+- The textarea reports contrast as "needs review" — axe cannot sample the
+  background under the resize grip. Checked by calculation instead: value text
+  18.2:1 / 15.1:1, placeholder 5.38:1 / 5.59:1 (light / dark).
+- `Layout/SpecSection/Brand` has no applicable rules; it is decorative bars only.
+- Automated checks cover roughly a third of WCAG. Keyboard flow and screen-reader
+  output have not been tested by hand.

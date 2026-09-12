@@ -39,12 +39,12 @@ export const colors = {
   borderHover: themed('--sc-border-hover', '#A19C90', '#6A6559'),
 
   accent: themed('--sc-accent', '#2B5C8A', '#3B6E9E'),
-  accentHover: themed('--sc-accent-hover', '#1F4568', '#4C85B8'),
-  accentPress: themed('--sc-accent-press', '#163350', '#2C5880'),
+  accentHover: themed('--sc-accent-hover', '#1F4568', '#2C5880'),
+  accentPress: themed('--sc-accent-press', '#163350', '#234870'),
 
   pass: themed('--sc-pass', '#0E7C66', '#14957A'),
   passBright: themed('--sc-pass-bright', '#34D3A7', '#3FE0B4'),
-  amber: themed('--sc-amber', '#A66A05', '#B4790F'),
+  amber: themed('--sc-amber', '#A46804', '#A06B0D'),
   fail: themed('--sc-fail', '#A3231A', '#C8442D'),
   info: themed('--sc-info', '#2B5C8A', '#3B6E9E'),
 } as const satisfies Record<string, ThemedColor>;

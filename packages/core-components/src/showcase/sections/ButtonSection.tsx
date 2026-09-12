@@ -41,7 +41,7 @@ const rows: Row[] = [
     name: 'Quiet',
     variant: 'quiet',
     label: 'View details',
-    hover: 'border-accent text-accent-hover',
+    hover: 'border-accent text-accent-text-hover',
     focus: 'outline-2 outline-offset-[3px] outline-accent',
   },
   {

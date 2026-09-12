@@ -40,6 +40,9 @@
   --sc-on-accent: #ffffff;
   /* Accent used as text on paper, where it must clear 4.5:1 on its own. */
   --sc-accent-text: #2b5c8a;
+  /* Hover colour for accent *text*. Kept apart from --sc-accent-hover, which is a
+     fill: in dark mode the fill darkens on hover while text must stay light. */
+  --sc-accent-text-hover: #1f4568;
 
   /* Pass — pine */
   --sc-pass: #0e7c66;
@@ -48,7 +51,7 @@
   --sc-on-pass: #ffffff;
 
   /* Status */
-  --sc-amber: #a66a05;
+  --sc-amber: #a46804;
   --sc-fail: #a3231a;
   --sc-fail-ink: #8f1f17;
   --sc-fail-press: #7a1a13;
@@ -111,17 +114,19 @@
   --sc-disabled-border: #302c26;
 
   --sc-accent: #3b6e9e;
-  --sc-accent-hover: #4c85b8;
-  --sc-accent-press: #2c5880;
+  /* Darken on hover, not lighten: white on the old #4c85b8 was 3.92:1. */
+  --sc-accent-hover: #2c5880;
+  --sc-accent-press: #234870;
   --sc-on-accent: #ffffff;
   --sc-accent-text: #4c85b8;
+  --sc-accent-text-hover: #4c85b8;
 
   --sc-pass: #14957a;
   --sc-pass-bright: #3fe0b4;
   --sc-pass-hover: #0f7a63;
   --sc-on-pass: #04211b;
 
-  --sc-amber: #b4790f;
+  --sc-amber: #a06b0d;
   --sc-fail: #c8442d;
   --sc-fail-ink: #ff9683;
   --sc-fail-press: #a8341f;

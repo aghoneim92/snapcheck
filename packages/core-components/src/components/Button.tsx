@@ -27,7 +27,7 @@ const variants: Record<ButtonVariant, string> = {
   ),
   quiet: cn(
     'rounded-none border-0 border-b-2 border-border-strong bg-transparent text-ink',
-    'hover:border-accent hover:text-accent-hover',
+    'hover:border-accent hover:text-accent-text-hover',
     'focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent',
     'disabled:border-disabled-bg disabled:text-disabled-ink',
   ),

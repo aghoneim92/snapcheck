@@ -38,6 +38,7 @@
   --color-accent-press: var(--sc-accent-press);
   --color-on-accent: var(--sc-on-accent);
   --color-accent-text: var(--sc-accent-text);
+  --color-accent-text-hover: var(--sc-accent-text-hover);
 
   --color-pass: var(--sc-pass);
   --color-pass-bright: var(--sc-pass-bright);
