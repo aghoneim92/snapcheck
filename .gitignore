@@ -1,0 +1,10 @@
+node_modules/
+dist/
+storybook-static/
+*.tsbuildinfo
+.DS_Store
+.vite/
+
+# Declaration output never belongs next to the sources
+*.d.ts.map
+packages/*/src/**/*.d.ts

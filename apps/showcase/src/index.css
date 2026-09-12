@@ -1,0 +1,9 @@
+/*
+ * The app's Tailwind entry. It scans its own source plus the component
+ * library's, because in this workspace the app imports the library from source
+ * rather than from a built bundle.
+ */
+@import '@snapcheck/tokens/theme.css';
+
+@source "./";
+@source "../../../packages/core-components/src";

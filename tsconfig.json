@@ -1,0 +1,4 @@
+{
+  "files": [],
+  "comment": "Each workspace package typechecks itself; run `pnpm typecheck` at the root."
+}

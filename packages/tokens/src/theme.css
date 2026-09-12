@@ -1,0 +1,131 @@
+/*
+ * Snapcheck Core — Tailwind v4 theme.
+ *
+ * Import this once per app/bundle; it pulls in Tailwind, the raw tokens, and
+ * maps them onto Tailwind's theme namespace. `@theme inline` matters here: it
+ * makes utilities emit `var(--sc-*)` directly, so flipping `data-theme` on
+ * <html> restyles everything without regenerating a single class.
+ */
+
+@import 'tailwindcss';
+@import './tokens.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme inline {
+  --color-paper: var(--sc-paper);
+  --color-surface: var(--sc-surface);
+  --color-surface-2: var(--sc-surface-2);
+
+  --color-ink: var(--sc-ink);
+  --color-body: var(--sc-body);
+  --color-sec: var(--sc-sec);
+  --color-label: var(--sc-label);
+
+  --color-rule: var(--sc-rule);
+  --color-rule-soft: var(--sc-rule-soft);
+  --color-border-strong: var(--sc-border);
+  --color-border-soft: var(--sc-border-soft);
+  --color-border-hover: var(--sc-border-hover);
+
+  --color-disabled-bg: var(--sc-disabled-bg);
+  --color-disabled-bg-2: var(--sc-disabled-bg-2);
+  --color-disabled-ink: var(--sc-disabled-ink);
+  --color-disabled-border: var(--sc-disabled-border);
+
+  --color-accent: var(--sc-accent);
+  --color-accent-hover: var(--sc-accent-hover);
+  --color-accent-press: var(--sc-accent-press);
+  --color-on-accent: var(--sc-on-accent);
+  --color-accent-text: var(--sc-accent-text);
+
+  --color-pass: var(--sc-pass);
+  --color-pass-bright: var(--sc-pass-bright);
+  --color-pass-hover: var(--sc-pass-hover);
+  --color-on-pass: var(--sc-on-pass);
+
+  --color-amber: var(--sc-amber);
+  --color-fail: var(--sc-fail);
+  --color-fail-ink: var(--sc-fail-ink);
+  --color-fail-press: var(--sc-fail-press);
+  --color-fail-dis-border: var(--sc-fail-dis-border);
+  --color-fail-dis-ink: var(--sc-fail-dis-ink);
+  --color-info: var(--sc-info);
+
+  --color-slab: var(--sc-slab);
+  --color-code-ink: var(--sc-code-ink);
+  --color-code-accent: var(--sc-code-accent);
+  --color-logo-plaque: var(--sc-logo-plaque);
+
+  --font-sans: var(--sc-font-sans);
+  --font-mono: var(--sc-font-mono);
+
+  /* Type scale, straight off the spec sheet (size / line-height). */
+  --text-display: 60px;
+  --text-display--line-height: 62px;
+  --text-display--letter-spacing: -0.045em;
+  --text-display--font-weight: 800;
+
+  --text-h1: 38px;
+  --text-h1--line-height: 44px;
+  --text-h1--letter-spacing: -0.035em;
+  --text-h1--font-weight: 800;
+
+  --text-h2: 26px;
+  --text-h2--line-height: 34px;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 20px;
+  --text-h3--line-height: 28px;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 800;
+
+  --text-lead: 17px;
+  --text-lead--line-height: 27px;
+
+  --text-base: 15px;
+  --text-base--line-height: 23px;
+
+  --text-small: 14px;
+  --text-small--line-height: 21px;
+
+  --text-code: 13px;
+  --text-code--line-height: 22px;
+  --text-code--letter-spacing: -0.04em;
+
+  --text-mono: 10px;
+  --text-mono--line-height: 16px;
+  --text-mono--letter-spacing: -0.02em;
+
+  --text-mono-xs: 9px;
+  --text-mono-xs--line-height: 14px;
+  --text-mono-xs--letter-spacing: -0.02em;
+
+  --radius-chip: var(--sc-radius-chip);
+  --radius-control: var(--sc-radius-control);
+
+  --height-control-sm: var(--sc-control-sm);
+  --height-control-md: var(--sc-control-md);
+  --height-control-lg: var(--sc-control-lg);
+
+  --animate-sc-spin: sc-spin 700ms linear infinite;
+}
+
+@layer base {
+  body {
+    background: var(--sc-paper);
+    color: var(--sc-ink);
+    font-family: var(--sc-font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--sc-selection);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--sc-label);
+  }
+}

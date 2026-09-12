@@ -1,0 +1,143 @@
+/*
+ * Snapcheck Core — raw design tokens.
+ *
+ * Light is the default; `data-theme="dark"` on <html> swaps the palette.
+ * Every token is a bare custom property so any consumer (Tailwind, plain CSS,
+ * inline styles) can read it, and so theme switching is a single attribute flip.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --sc-paper: #f4f1ea;
+  --sc-surface: #ffffff;
+  --sc-surface-2: #e9e6dd;
+
+  /* Text */
+  --sc-ink: #14151a;
+  --sc-body: #3c3a36;
+  --sc-sec: #5a564e;
+  --sc-label: #6e6a62;
+
+  /* Lines */
+  --sc-rule: #dcd7cb;
+  --sc-rule-soft: #e8e4da;
+  --sc-border: #c5c0b4;
+  --sc-border-soft: #cfcac0;
+  --sc-border-hover: #a19c90;
+
+  /* Disabled */
+  --sc-disabled-bg: #e4e1d8;
+  --sc-disabled-bg-2: #edeae1;
+  --sc-disabled-ink: #8b8780;
+  --sc-disabled-border: #d5d1c6;
+
+  /* Action — slate blue */
+  --sc-accent: #2b5c8a;
+  --sc-accent-hover: #1f4568;
+  --sc-accent-press: #163350;
+  --sc-on-accent: #ffffff;
+  /* Accent used as text on paper, where it must clear 4.5:1 on its own. */
+  --sc-accent-text: #2b5c8a;
+
+  /* Pass — pine */
+  --sc-pass: #0e7c66;
+  --sc-pass-bright: #34d3a7;
+  --sc-pass-hover: #0a6353;
+  --sc-on-pass: #ffffff;
+
+  /* Status */
+  --sc-amber: #a66a05;
+  --sc-fail: #a3231a;
+  --sc-fail-ink: #8f1f17;
+  --sc-fail-press: #7a1a13;
+  --sc-fail-dis-border: #e2d2cb;
+  --sc-fail-dis-ink: #b49a92;
+  --sc-info: #2b5c8a;
+
+  /* Code + chrome */
+  /*
+   * `--sc-slab` is a surface that stays dark in both themes, for the code block
+   * and the PASS tag. They cannot use `--sc-ink`: that is a *text* token and it
+   * inverts, which would put pale text on a pale plate in dark mode.
+   */
+  --sc-slab: #14151a;
+  --sc-code-ink: #e9e6dd;
+  --sc-code-accent: #9fc3e4;
+  --sc-selection: #cfddea;
+  --sc-logo-plaque: transparent;
+
+  /* Typography */
+  --sc-font-sans: Manrope, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sc-font-mono: 'Martian Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Radii — layout stays square, only controls round off */
+  --sc-radius-surface: 0px;
+  --sc-radius-chip: 3px;
+  --sc-radius-control: 6px;
+  --sc-radius-pill: 999px;
+
+  /* Control heights */
+  --sc-control-sm: 32px;
+  --sc-control-md: 40px;
+  --sc-control-lg: 52px;
+
+  /* Motion */
+  --sc-transition: 110ms ease;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --sc-paper: #151412;
+  --sc-surface: #1e1c18;
+  --sc-surface-2: #242118;
+
+  --sc-ink: #f4f1ea;
+  --sc-body: #cfc9bc;
+  --sc-sec: #ada69a;
+  --sc-label: #9a9387;
+
+  --sc-rule: #302c26;
+  --sc-rule-soft: #26231f;
+  --sc-border: #45413a;
+  --sc-border-soft: #38352f;
+  --sc-border-hover: #6a6559;
+
+  --sc-disabled-bg: #201e1a;
+  --sc-disabled-bg-2: #1b1a17;
+  --sc-disabled-ink: #6a6559;
+  --sc-disabled-border: #302c26;
+
+  --sc-accent: #3b6e9e;
+  --sc-accent-hover: #4c85b8;
+  --sc-accent-press: #2c5880;
+  --sc-on-accent: #ffffff;
+  --sc-accent-text: #4c85b8;
+
+  --sc-pass: #14957a;
+  --sc-pass-bright: #3fe0b4;
+  --sc-pass-hover: #0f7a63;
+  --sc-on-pass: #04211b;
+
+  --sc-amber: #b4790f;
+  --sc-fail: #c8442d;
+  --sc-fail-ink: #ff9683;
+  --sc-fail-press: #a8341f;
+  --sc-fail-dis-border: #33241f;
+  --sc-fail-dis-ink: #6b4a40;
+  --sc-info: #3b6e9e;
+
+  --sc-slab: #1e1c18;
+  --sc-code-ink: #e9e6dd;
+  --sc-code-accent: #9fc3e4;
+  --sc-selection: #1e3a52;
+  --sc-logo-plaque: #f4f1ea;
+}
+
+@keyframes sc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
