@@ -58,7 +58,11 @@ export function Input({
             </span>
           )}
           {field}
-          {trailing && <span className="absolute top-2 right-2.25 flex items-center justify-center">{trailing}</span>}
+          {trailing && (
+            <span className="absolute top-2 right-2.25 flex items-center justify-center">
+              {trailing}
+            </span>
+          )}
         </div>
       ) : (
         field

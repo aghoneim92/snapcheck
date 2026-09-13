@@ -45,7 +45,9 @@ jobs:
       - name: Determinism rig
         env:
           RUNS: ${{ inputs.runs || '10' }}
-        run: pnpm rig:determinism --runs "$RUNS"
+        # reducedMotion isolates the non-animation flake (font loading, render
+        # timing) until the Phase 4 harness applies every flag by default.
+        run: pnpm rig:determinism --runs "$RUNS" --reduced-motion
       - if: always()
         uses: actions/upload-artifact@v4
         with:
