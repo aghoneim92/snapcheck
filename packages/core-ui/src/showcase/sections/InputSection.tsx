@@ -44,7 +44,7 @@ export function InputSection({
       title="Inputs"
       description="White fields on paper so entry points are obvious. Labels in mono, values in Manrope. All live."
     >
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(258px,1fr))] gap-x-8 gap-y-[26px]">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(258px,1fr))] gap-x-8 gap-y-6.5">
         <Input
           label="PROJECT NAME"
           placeholder="web-app"
@@ -84,7 +84,7 @@ export function InputSection({
         />
       </div>
 
-      <div className="mt-[30px] grid grid-cols-[repeat(auto-fit,minmax(216px,1fr))] gap-x-8 gap-y-[26px] border-t border-rule pt-[26px]">
+      <div className="mt-7.5 grid grid-cols-[repeat(auto-fit,minmax(216px,1fr))] gap-x-8 gap-y-6.5 border-t border-rule pt-6.5">
         <div>
           <SpecLabel>CHECKBOX</SpecLabel>
           <div className="flex flex-col gap-3.5">

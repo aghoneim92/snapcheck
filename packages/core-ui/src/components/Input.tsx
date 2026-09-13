@@ -58,7 +58,7 @@ export function Input({
             </span>
           )}
           {field}
-          {trailing && <span className="absolute top-[9px] right-[9px]">{trailing}</span>}
+          {trailing && <span className="absolute top-2 right-2.25 flex items-center justify-center">{trailing}</span>}
         </div>
       ) : (
         field
@@ -72,7 +72,7 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
   return (
     <kbd
       className={cn(
-        'rounded-chip border border-rule bg-paper px-[7px] py-[3px]',
+        'rounded-chip border border-rule bg-paper px-1.75 py-0.75',
         'font-mono text-mono text-body',
         className,
       )}
