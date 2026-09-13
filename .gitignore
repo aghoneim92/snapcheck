@@ -3,3 +3,7 @@ storybook-static/
 *.tsbuildinfo
 .DS_Store
 .vite/
+dist/
+# snapcheck baselines and run output. Local baselines are the degraded
+# single-user mode for M0; committing them is an explicit opt-in.
+.snapcheck/

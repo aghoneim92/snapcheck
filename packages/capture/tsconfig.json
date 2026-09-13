@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Unlike core-ui, this package runs under Node and is published as JS, so it
+    // resolves like Node does. Sources import `.ts` directly so scripts can run
+    // unbuilt on Node's type stripping; `tsc` rewrites the extensions on emit.
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "rewriteRelativeImportExtensions": true,
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@snapcheck/capture",
+  "version": "0.0.0",
+  "description": "Storybook index reader, Playwright runner, determinism harness, diff engine and report generator for snapcheck.",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "playwright": "1.63.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/pngjs": "^6.0.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "//playwright": "Pinned to an exact version on purpose. A Playwright minor bump ships a new Chromium, which can change rendering and silently invalidate every baseline. Bump deliberately and re-baseline."
+}

@@ -1,0 +1,54 @@
+name: determinism
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: Captures to compare
+        default: '10'
+
+jobs:
+  checks:
+    # Pinned runner image, not ubuntu-latest: the image supplies system fonts
+    # and graphics libraries, and a silent image bump changes rendering.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test
+
+  rig:
+    runs-on: ubuntu-24.04
+    # Non-blocking while capture and its core-ui fixture share a repo. Otherwise
+    # a capture bug fails the design system's check, a design system change
+    # fails capture's check, and the build deadlocks with no obvious culprit.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm --filter @snapcheck/capture exec playwright install --with-deps chromium
+      - name: Determinism rig
+        env:
+          RUNS: ${{ inputs.runs || '10' }}
+        run: pnpm rig:determinism --runs "$RUNS"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: determinism-rig
+          path: .snapcheck/rig
+          retention-days: 7

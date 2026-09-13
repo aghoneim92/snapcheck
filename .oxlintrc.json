@@ -51,6 +51,19 @@
       "rules": {
         "react-hooks/rules-of-hooks": "off"
       }
+    },
+    {
+      "files": ["packages/capture/**", "packages/cli/**"],
+      "env": {
+        "node": true,
+        "browser": false
+      }
+    },
+    {
+      "files": ["packages/capture/src/rig/cli.ts", "packages/cli/**"],
+      "rules": {
+        "no-console": "off"
+      }
     }
   ],
   "ignorePatterns": ["dist", "storybook-static", "node_modules"]
