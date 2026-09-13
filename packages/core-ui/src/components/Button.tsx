@@ -9,6 +9,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 const base =
   'inline-flex items-center justify-center gap-2 whitespace-nowrap font-bold ' +
   'tracking-[-0.01em] cursor-pointer transition-colors duration-[110ms] ease-out ' +
+  'motion-reduce:transition-none ' +
   'disabled:cursor-not-allowed disabled:pointer-events-none';
 
 const variants: Record<ButtonVariant, string> = {

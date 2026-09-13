@@ -58,7 +58,7 @@ export function Field({
 /** Shared control skin: white field on paper, so entry points stay obvious. */
 export const controlSkin = cn(
   'w-full rounded-control border border-border-strong bg-surface text-ink outline-none',
-  'transition-colors duration-[110ms] ease-out',
+  'transition-colors duration-[110ms] ease-out motion-reduce:transition-none',
   'hover:border-border-hover',
   'focus:border-accent focus:outline-2 focus:outline-offset-1 focus:outline-accent',
   'disabled:cursor-not-allowed disabled:border-dashed disabled:border-border-soft',

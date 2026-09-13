@@ -34,7 +34,7 @@ export function Link({
       target={target}
       rel={target === '_blank' ? (rel ?? 'noreferrer noopener') : rel}
       className={cn(
-        'transition-colors duration-[110ms] ease-out',
+        'transition-colors duration-[110ms] ease-out motion-reduce:transition-none',
         'hover:text-ink hover:underline hover:underline-offset-[3px]',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
         variants[variant],

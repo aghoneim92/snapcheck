@@ -41,7 +41,7 @@ export function SegmentedControl<T extends string>({
             onClick={() => onValueChange(option.value)}
             className={cn(
               'cursor-pointer px-3.5 py-[9px] text-small font-bold',
-              'transition-colors duration-[110ms] ease-out',
+              'transition-colors duration-[110ms] ease-out motion-reduce:transition-none',
               'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent',
               index < options.length - 1 && 'border-r border-ink',
               selected ? 'bg-ink text-paper' : 'bg-transparent text-ink hover:bg-surface-2',

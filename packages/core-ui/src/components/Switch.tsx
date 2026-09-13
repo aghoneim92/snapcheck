@@ -28,7 +28,7 @@ export function Switch({ checked, onCheckedChange, label, disabled, className }:
         onClick={() => onCheckedChange(!checked)}
         className={cn(
           'flex h-[22px] w-11 flex-none items-center rounded-chip p-0.5',
-          'cursor-pointer transition-colors duration-[110ms] ease-out',
+          'cursor-pointer transition-colors duration-[110ms] ease-out motion-reduce:transition-none',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
           'disabled:cursor-not-allowed disabled:opacity-60',
           checked ? 'justify-end bg-ink' : 'justify-start border border-border-strong bg-surface',
