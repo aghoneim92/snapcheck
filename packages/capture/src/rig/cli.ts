@@ -21,6 +21,9 @@ const { values } = parseArgs({
     'reduced-motion': { type: 'boolean', default: false },
     'disable-gpu': { type: 'boolean', default: false },
     'force-software-rendering': { type: 'boolean', default: false },
+    'wait-for-render': { type: 'boolean', default: false },
+    'wait-for-fonts': { type: 'boolean', default: false },
+    'simulate-network-latency': { type: 'string', default: '0' },
   },
 });
 
@@ -28,7 +31,10 @@ const harness: StubHarness = {
   reducedMotion: values['reduced-motion'],
   disableGpu: values['disable-gpu'],
   forceSoftwareRendering: values['force-software-rendering'],
+  waitForRender: values['wait-for-render'],
+  waitForFonts: values['wait-for-fonts'],
 };
+const simulateNetworkLatencyMs = Number(values['simulate-network-latency']);
 
 function formatPercent(fraction: number): string {
   if (fraction === 0) return '0';
@@ -54,6 +60,9 @@ function printReport(report: RigReport, run: RigRun): void {
         .join(', ') || 'none (naive stub)'
     }`,
   );
+  if (simulateNetworkLatencyMs > 0) {
+    console.log(`Simulated network latency: 0–${simulateNetworkLatencyMs}ms per remote request`);
+  }
 
   if (report.fingerprintMismatches.length > 0) {
     console.log('\n!! Fingerprint changed between runs; results are not comparable:');
@@ -102,7 +111,12 @@ async function main(): Promise<number> {
     const started = performance.now();
     // Runs must not overlap: each one stands in for a separate CI run.
     // oxlint-disable-next-line no-await-in-loop
-    const manifest = await captureStub({ staticDir, outDir: dir, harness });
+    const manifest = await captureStub({
+      staticDir,
+      outDir: dir,
+      harness,
+      simulateNetworkLatencyMs,
+    });
     const failed = manifest.stories.filter((story) => story.error).length;
     console.log(
       `run ${index}/${runCount}: ${manifest.stories.length} stories, ${failed} failed, concurrency ${manifest.concurrency}, ${((performance.now() - started) / 1000).toFixed(1)}s`,
@@ -112,7 +126,10 @@ async function main(): Promise<number> {
 
   const report = await compareRuns(runs);
   await mkdir(root, { recursive: true });
-  await writeFile(path.join(root, 'report.json'), JSON.stringify({ harness, ...report }, null, 2));
+  await writeFile(
+    path.join(root, 'report.json'),
+    JSON.stringify({ harness, simulateNetworkLatencyMs, ...report }, null, 2),
+  );
   printReport(report, runs[0] as RigRun);
   console.log(`\nReport: ${path.join(root, 'report.json')}`);
   return report.stable ? 0 : 1;
