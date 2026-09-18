@@ -9,6 +9,9 @@ on:
       runs:
         description: Captures to compare
         default: '10'
+      flags:
+        description: Extra rig flags, e.g. --no-wait-for-network-idle (bisecting)
+        default: ''
 
 jobs:
   checks:
@@ -45,9 +48,14 @@ jobs:
       - name: Determinism rig
         env:
           RUNS: ${{ inputs.runs || '10' }}
+          # Unquoted in the command below so multiple flags split into
+          # arguments. Only repo writers can dispatch a workflow, and the value
+          # arrives as an environment variable rather than interpolated into
+          # the script.
+          FLAGS: ${{ inputs.flags || '' }}
         # The runner applies the harness by default; --no-<flag> turns one off
         # to bisect. Waiting for the story to render is unconditional.
-        run: pnpm rig:determinism --runs "$RUNS"
+        run: pnpm rig:determinism --runs "$RUNS" $FLAGS
       - if: always()
         uses: actions/upload-artifact@v4
         with:

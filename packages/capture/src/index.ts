@@ -22,11 +22,27 @@ export {
   type StorySettings,
 } from './config.ts';
 export {
+  compare,
+  DEFAULT_PIXEL_THRESHOLD,
+  exceedsThreshold,
+  pixelmatchComparator,
+  type CompareOptions,
+  type CompareResult,
+  type ImageComparator,
+} from './compare.ts';
+export {
   captureFingerprint,
   fingerprintDifferences,
   type EnvironmentFingerprint,
 } from './environment.ts';
-export { decodePng, exactDiff, pixelHash, type DecodedImage, type ExactDiff } from './pixels.ts';
+export {
+  decodePng,
+  encodePng,
+  exactDiff,
+  pixelHash,
+  type DecodedImage,
+  type ExactDiff,
+} from './pixels.ts';
 export { defaultConcurrency, runPool } from './pool.ts';
 export {
   captureStories,

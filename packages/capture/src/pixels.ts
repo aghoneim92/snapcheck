@@ -14,6 +14,12 @@ export function decodePng(bytes: Uint8Array): DecodedImage {
   return { width: png.width, height: png.height, data: png.data };
 }
 
+export function encodePng(image: DecodedImage): Buffer {
+  const png = new PNG({ width: image.width, height: image.height });
+  png.data = Buffer.from(image.data);
+  return PNG.sync.write(png);
+}
+
 /**
  * Identity of an image's rendered content. Hashes dimensions plus decoded RGBA,
  * never PNG file bytes: metadata chunks, compression level and filter choice
