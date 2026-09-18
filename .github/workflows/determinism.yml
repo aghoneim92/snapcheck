@@ -45,11 +45,9 @@ jobs:
       - name: Determinism rig
         env:
           RUNS: ${{ inputs.runs || '10' }}
-        # Prototype harness flags on the stub, until the Phase 3 runner and
-        # Phase 4 harness apply them by default: reducedMotion for animations,
-        # waitForRender and waitForFonts for the webfont and page-height races
-        # this runner exposed.
-        run: pnpm rig:determinism --runs "$RUNS" --reduced-motion --wait-for-render --wait-for-fonts
+        # The runner applies the harness by default; --no-<flag> turns one off
+        # to bisect. Waiting for the story to render is unconditional.
+        run: pnpm rig:determinism --runs "$RUNS"
       - if: always()
         uses: actions/upload-artifact@v4
         with:

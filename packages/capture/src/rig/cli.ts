@@ -2,7 +2,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { captureStub, type StubHarness } from '../stub/capture.ts';
+import type { HarnessConfig } from '../config.ts';
+import { captureStories } from '../runner/capture.ts';
 import { compareRuns, type RigReport, type RigRun } from './determinism.ts';
 
 /**
@@ -18,21 +19,22 @@ const { values } = parseArgs({
     'static-dir': { type: 'string' },
     runs: { type: 'string', default: '10' },
     out: { type: 'string', default: '.snapcheck/rig' },
-    'reduced-motion': { type: 'boolean', default: false },
+    /** Single viewport by default: every extra one multiplies rig runtime. */
+    viewports: { type: 'string', default: '1280' },
+    'no-reduced-motion': { type: 'boolean', default: false },
+    'no-wait-for-fonts': { type: 'boolean', default: false },
     'disable-gpu': { type: 'boolean', default: false },
     'force-software-rendering': { type: 'boolean', default: false },
-    'wait-for-render': { type: 'boolean', default: false },
-    'wait-for-fonts': { type: 'boolean', default: false },
   },
 });
 
-const harness: StubHarness = {
-  reducedMotion: values['reduced-motion'],
+const harness: HarnessConfig = {
+  reducedMotion: !values['no-reduced-motion'],
+  waitForFonts: !values['no-wait-for-fonts'],
   disableGpu: values['disable-gpu'],
   forceSoftwareRendering: values['force-software-rendering'],
-  waitForRender: values['wait-for-render'],
-  waitForFonts: values['wait-for-fonts'],
 };
+const viewports = values.viewports.split(',').map((width) => Number(width.trim()));
 
 function formatPercent(fraction: number): string {
   if (fraction === 0) return '0';
@@ -55,9 +57,10 @@ function printReport(report: RigReport, run: RigRun): void {
       Object.entries(harness)
         .filter(([, on]) => on)
         .map(([name]) => name)
-        .join(', ') || 'none (naive stub)'
+        .join(', ') || 'none'
     }`,
   );
+  console.log(`Viewports: ${viewports.join(', ')}`);
 
   if (report.fingerprintMismatches.length > 0) {
     console.log('\n!! Fingerprint changed between runs; results are not comparable:');
@@ -69,13 +72,13 @@ function printReport(report: RigReport, run: RigRun): void {
   );
   const compared = report.runs - 1;
   console.log(
-    `\n${report.stories.length - unstable.length}/${report.stories.length} stories stable across ${report.runs} runs`,
+    `\n${report.stories.length - unstable.length}/${report.stories.length} captures stable across ${report.runs} runs`,
   );
   if (unstable.length === 0) return;
 
-  console.log('\nUnstable stories, worst first:\n');
-  const idWidth = Math.max(...unstable.map((story) => story.id.length), 5);
-  console.log(`  ${'story'.padEnd(idWidth)}  differed  failed  renders  max changed  per run`);
+  console.log('\nUnstable captures, worst first:\n');
+  const idWidth = Math.max(...unstable.map((story) => story.id.length), 7);
+  console.log(`  ${'capture'.padEnd(idWidth)}  differed  failed  renders  max changed  per run`);
   for (const story of unstable) {
     const perRun = story.fractions.map((fraction) =>
       fraction === null ? '-' : formatPercent(fraction),
@@ -106,12 +109,25 @@ async function main(): Promise<number> {
     const started = performance.now();
     // Runs must not overlap: each one stands in for a separate CI run.
     // oxlint-disable-next-line no-await-in-loop
-    const manifest = await captureStub({ staticDir, outDir: dir, harness });
-    const failed = manifest.stories.filter((story) => story.error).length;
+    const run = await captureStories({ staticDir, outDir: dir, harness, viewports });
+    const failures = run.results.filter((result) => result.status === 'failed');
     console.log(
-      `run ${index}/${runCount}: ${manifest.stories.length} stories, ${failed} failed, concurrency ${manifest.concurrency}, ${((performance.now() - started) / 1000).toFixed(1)}s`,
+      `run ${index}/${runCount}: ${run.results.length} captures, ${failures.length} failed, concurrency ${run.concurrency}, ${((performance.now() - started) / 1000).toFixed(1)}s`,
     );
-    runs.push({ dir, fingerprint: manifest.fingerprint, stories: manifest.stories });
+    for (const failure of failures.slice(0, 5)) {
+      console.log(
+        `    ${failure.key}: ${failure.renderError ? 'render error: ' : ''}${failure.error}`,
+      );
+    }
+    runs.push({
+      dir,
+      fingerprint: run.fingerprint,
+      stories: run.results.map((result) => ({
+        id: result.key,
+        file: result.file,
+        error: result.error,
+      })),
+    });
   }
 
   const report = await compareRuns(runs);

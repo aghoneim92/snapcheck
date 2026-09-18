@@ -3,11 +3,6 @@ import type { Page } from 'playwright';
 // Storybook's globals are double-underscored by Storybook, and ours mirrors them.
 /* oxlint-disable no-underscore-dangle */
 
-/**
- * PROTOTYPE waits for the Phase 1 stub, validated by the determinism rig
- * before the real runner (Phase 3) and harness (Phase 4) adopt them.
- */
-
 interface RenderState {
   status: 'pending' | 'rendered' | 'errored';
   error?: string;
@@ -20,6 +15,11 @@ interface StorybookChannel {
 interface TrackedWindow {
   __snapcheckRender?: RenderState;
   __STORYBOOK_ADDONS_CHANNEL__?: StorybookChannel;
+}
+
+/** Raised when Storybook itself reports the story did not render. */
+export class StoryRenderError extends Error {
+  override name = 'StoryRenderError';
 }
 
 /**
@@ -64,8 +64,8 @@ export async function installRenderTracker(page: Page): Promise<void> {
 
 /**
  * Resolves once Storybook reports the story rendered and the result has been
- * painted. Throws with Storybook's own error if the story failed to render, so
- * an error overlay is never captured as if it were the story.
+ * painted. Throws with Storybook's own error when the story failed, so an
+ * error overlay is never captured as if it were the story.
  */
 export async function waitForStoryRender(page: Page, timeoutMs = 15_000): Promise<void> {
   await page.waitForFunction(
@@ -76,7 +76,7 @@ export async function waitForStoryRender(page: Page, timeoutMs = 15_000): Promis
   const state = await page.evaluate(
     () => (window as unknown as TrackedWindow).__snapcheckRender as RenderState,
   );
-  if (state.status === 'errored') throw new Error(`Story failed to render: ${state.error}`);
+  if (state.status === 'errored') throw new StoryRenderError(state.error ?? 'unknown render error');
 
   // Two frames: React commits effects after the render event, then paints.
   await page.evaluate(
@@ -85,6 +85,20 @@ export async function waitForStoryRender(page: Page, timeoutMs = 15_000): Promis
         requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
       }),
   );
+}
+
+/**
+ * Storybook's error overlay replaces the story in the DOM. Without this check
+ * a broken story yields a clean screenshot of an error page, which diffs as a
+ * visual change rather than a failure.
+ */
+export async function assertNoErrorOverlay(page: Page): Promise<void> {
+  const overlay = await page.evaluate(() => {
+    if (!document.body?.classList.contains('sb-show-errordisplay')) return null;
+    const text = document.querySelector('#error-message, .sb-errordisplay')?.textContent ?? '';
+    return text.trim().slice(0, 300) || 'Storybook displayed its error overlay';
+  });
+  if (overlay !== null) throw new StoryRenderError(overlay);
 }
 
 /**

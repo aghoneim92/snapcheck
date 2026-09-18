@@ -7,12 +7,34 @@ export {
   type LaunchOptions,
 } from './browser.ts';
 export {
+  DEFAULT_HARNESS,
+  DEFAULT_SNAPSHOT,
+  defineConfig,
+  globToRegExp,
+  isQuarantined,
+  matchesAnyGlob,
+  resolveConfig,
+  storySettingsFor,
+  type HarnessConfig,
+  type ResolvedConfig,
+  type SnapcheckConfig,
+  type SnapshotConfig,
+  type StorySettings,
+} from './config.ts';
+export {
   captureFingerprint,
   fingerprintDifferences,
   type EnvironmentFingerprint,
 } from './environment.ts';
 export { decodePng, exactDiff, pixelHash, type DecodedImage, type ExactDiff } from './pixels.ts';
 export { defaultConcurrency, runPool } from './pool.ts';
+export {
+  captureStories,
+  type CaptureOptions,
+  type CaptureResult,
+  type CaptureRunResult,
+} from './runner/capture.ts';
+export { StoryRenderError } from './runner/wait.ts';
 export { serveStatic, type StaticServer } from './serve.ts';
 export {
   parseStoryIndex,
