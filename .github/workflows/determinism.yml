@@ -63,6 +63,67 @@ jobs:
           path: .snapcheck/rig
           retention-days: 7
 
+  # Proves the changed-story path end to end: baselines, a real visual change,
+  # exit code 1, and a report with baseline/current/diff triplets in it. The
+  # snapshot job below only ever sees new baselines, so it never exercises any
+  # of that. Blocking, unlike the other capture jobs: every assertion here is
+  # about snapcheck's own output, not about how the design system looks.
+  report-smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm --filter @snapcheck/capture exec playwright install --with-deps chromium
+      - name: Baseline capture
+        run: |
+          pnpm build-storybook
+          node packages/cli/src/cli.ts snapshot --filter 'controls-button--*'
+      - name: Change one component
+        run: |
+          file=packages/core-ui/src/components/Button.tsx
+          sed -i 's/px-\[18px\]/px-[26px]/' "$file"
+          # Never let a failed patch silently "pass" as no visual change.
+          grep -q 'px-\[26px\]' "$file" || { echo "patch did not apply to $file"; exit 1; }
+          pnpm build-storybook
+      - name: Capture the change
+        run: |
+          set +e
+          node packages/cli/src/cli.ts snapshot --filter 'controls-button--*'
+          code=$?
+          set -e
+          [ "$code" = "1" ] || { echo "expected exit 1 for a visual change, got $code"; exit 1; }
+      - name: Assert the report shows the change
+        run: |
+          latest=$(ls -d .snapcheck/runs/*/ | sort | tail -1)
+          node -e '
+            const fs = require("fs");
+            const dir = process.argv[1];
+            const run = JSON.parse(fs.readFileSync(dir + "results.json", "utf8"));
+            if (run.counts.changed < 1) throw new Error("expected changed stories, got " + JSON.stringify(run.counts));
+            const html = fs.readFileSync(dir + "report.html", "utf8");
+            if (!html.includes("data:image/png")) throw new Error("report.html embedded no images");
+            for (const kind of ["baseline", "current", "diff"]) {
+              if (!html.includes(">" + kind + "<")) throw new Error("report.html has no " + kind + " panel");
+            }
+            const changed = run.results.filter((r) => r.status === "changed");
+            if (!changed.every((r) => r.files.baseline && r.files.current && r.files.diff)) {
+              throw new Error("a changed result is missing one of baseline/current/diff");
+            }
+            console.log("report ok:", JSON.stringify(run.counts), "| diff images:", changed.length);
+          ' "$latest"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-smoke
+          path: .snapcheck/runs
+          retention-days: 7
+
   snapshot:
     runs-on: ubuntu-24.04
     # Non-blocking for the same reason as the rig: while capture and its

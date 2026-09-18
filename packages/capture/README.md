@@ -103,6 +103,13 @@ Waiting for Storybook to report the story rendered is unconditional, not a
 flag. Storybook's own render errors and its error overlay are reported as
 failures rather than screenshotted as if they were the story.
 
+`waitForNetworkIdle` is the expensive one: on CI it costs about 13 seconds per
+run of this fixture (39s to 52s), measured by bisecting with
+`--no-wait-for-network-idle`, and caught nothing here — no story in `core-ui`
+fetches anything. It stays on because a story that does fetch needs it, and a
+missed request is a wrong snapshot rather than a slow one. Turn it off if your
+stories make no requests and you want the time back.
+
 The GPU flags are off because GPU-enabled rendering is tried first. On a
 machine with a GPU, one story here rendered its rounded corners two different
 ways about once in twenty runs; `disableGpu` fixed it but doubled run time, and

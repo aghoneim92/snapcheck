@@ -17,7 +17,7 @@
     "dev": "vite",
     "typecheck": "tsc",
     "storybook": "storybook dev -p 6006 --no-open",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build --disable-telemetry"
   },
   "dependencies": {
     "cn": "^0.2.6"
