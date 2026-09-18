@@ -1,0 +1,27 @@
+{
+  "name": "@snapcheck/cli",
+  "version": "0.0.0",
+  "description": "snapcheck command line: argument parsing, config loading, exit codes. All logic lives in @snapcheck/capture.",
+  "license": "MIT",
+  "bin": {
+    "snapcheck": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@snapcheck/capture": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

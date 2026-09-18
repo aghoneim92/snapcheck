@@ -9,6 +9,7 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test",
     "rig:determinism": "pnpm build-storybook && node packages/capture/src/rig/cli.ts --static-dir packages/core-ui/storybook-static",
+    "snapshot": "pnpm build-storybook && node packages/cli/src/cli.ts snapshot",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",
@@ -16,6 +17,7 @@
     "check": "pnpm format:check && pnpm lint && pnpm typecheck"
   },
   "devDependencies": {
+    "@snapcheck/capture": "workspace:*",
     "oxfmt": "^0.67.0",
     "oxlint": "^1.82.0",
     "typescript": "^7.0.2"

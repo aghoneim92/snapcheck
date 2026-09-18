@@ -62,3 +62,33 @@ jobs:
           name: determinism-rig
           path: .snapcheck/rig
           retention-days: 7
+
+  snapshot:
+    runs-on: ubuntu-24.04
+    # Non-blocking for the same reason as the rig: while capture and its
+    # core-ui fixture share a repo, a capture bug would fail the design
+    # system's check and a design system change would fail capture's, and the
+    # build can deadlock with no obvious culprit.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm --filter @snapcheck/capture exec playwright install --with-deps chromium
+      # Baselines are gitignored, so every CI run starts with none: this writes
+      # new baselines and exits 0 with a warning. It proves the full loop runs,
+      # not that nothing changed. Real regression checking arrives with the
+      # review server at M1.
+      - name: Snapshot
+        run: pnpm snapshot
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshot-run
+          path: .snapcheck/runs
+          retention-days: 7

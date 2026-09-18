@@ -58,7 +58,32 @@ export {
   HIDE_SCROLLBARS_CSS,
 } from './runner/harness.ts';
 export { StoryRenderError } from './runner/wait.ts';
+export {
+  baselinePath,
+  emptyManifest,
+  promoteBaseline,
+  readBaselineManifest,
+  writeBaselineManifest,
+  type BaselineEntry,
+  type BaselineManifest,
+} from './baselines.ts';
+export {
+  compareRuns,
+  type RigReport,
+  type RigRun,
+  type StoryStability,
+} from './rig/determinism.ts';
+export { renderReport } from './report.ts';
 export { serveStatic, type StaticServer } from './serve.ts';
+export {
+  decideStatus,
+  runSnapshot,
+  type RunSnapshotOptions,
+  type SnapshotCounts,
+  type SnapshotResult,
+  type SnapshotRunResult,
+  type SnapshotStatus,
+} from './snapshot.ts';
 export {
   parseStoryIndex,
   readStoryIndex,
