@@ -35,8 +35,27 @@ export interface SnapshotConfig {
 export interface HarnessConfig {
   /** `prefers-reduced-motion: reduce`. Default: true. */
   reducedMotion?: boolean;
+  /**
+   * Inject CSS that zeroes animation and transition durations and pins
+   * animations to their final frame. Default: true.
+   */
+  freezeAnimations?: boolean;
   /** Wait for stylesheets and every font the page uses. Default: true. */
   waitForFonts?: boolean;
+  /** Wait for network idle, with a bounded timeout. Default: true. */
+  waitForNetworkIdle?: boolean;
+  /** Hide the blinking text caret. Default: true. */
+  hideCaret?: boolean;
+  /** Hide scrollbars, which appear and fade on their own timers. Default: true. */
+  hideScrollbars?: boolean;
+  /** Pin `deviceScaleFactor` to 1. Default: true. */
+  fixedDeviceScaleFactor?: boolean;
+  /**
+   * Set an explicit viewport per configured width, with a fixed height and
+   * full-page capture. Turning this off ignores the configured widths and
+   * uses Playwright's default viewport. Default: true.
+   */
+  fixedViewport?: boolean;
   /** Chromium `--disable-gpu`. Default: false — GPU rendering is tried first. */
   disableGpu?: boolean;
   /** CPU raster and compositing, SwiftShader GL. Default: false. */
@@ -96,7 +115,14 @@ export const DEFAULT_SNAPSHOT: SnapshotConfig = {
 
 export const DEFAULT_HARNESS: Required<HarnessConfig> = {
   reducedMotion: true,
+  freezeAnimations: true,
   waitForFonts: true,
+  waitForNetworkIdle: true,
+  hideCaret: true,
+  hideScrollbars: true,
+  fixedDeviceScaleFactor: true,
+  fixedViewport: true,
+  // GPU rendering is tried first; these exist so the rig can bisect with them.
   disableGpu: false,
   forceSoftwareRendering: false,
 };

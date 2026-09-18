@@ -34,6 +34,13 @@ export {
   type CaptureResult,
   type CaptureRunResult,
 } from './runner/capture.ts';
+export {
+  buildHarnessCss,
+  contextOptionsFor,
+  FREEZE_ANIMATIONS_CSS,
+  HIDE_CARET_CSS,
+  HIDE_SCROLLBARS_CSS,
+} from './runner/harness.ts';
 export { StoryRenderError } from './runner/wait.ts';
 export { serveStatic, type StaticServer } from './serve.ts';
 export {

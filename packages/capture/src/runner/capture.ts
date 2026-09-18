@@ -15,6 +15,7 @@ import { captureFingerprint, type EnvironmentFingerprint } from '../environment.
 import { defaultConcurrency, runPool } from '../pool.ts';
 import { serveStatic } from '../serve.ts';
 import { readStoryIndex, type ReadStoryIndexOptions } from '../storybookIndex.ts';
+import { buildHarnessCss, contextOptionsFor } from './harness.ts';
 import {
   assertNoErrorOverlay,
   installRenderTracker,
@@ -34,6 +35,7 @@ import {
 /** Height of the capture window; `fullPage` grows past it. */
 const VIEWPORT_HEIGHT = 720;
 const NAVIGATION_TIMEOUT_MS = 30_000;
+const NETWORK_IDLE_TIMEOUT_MS = 10_000;
 
 export interface CaptureResult {
   /** `storyId + mode + viewport`, the key baselines are stored under. */
@@ -136,11 +138,9 @@ export async function captureStories(options: CaptureOptions): Promise<CaptureRu
 
       try {
         const active = await ensureBrowser();
-        const context = await active.newContext({
-          viewport: { width: task.viewport, height: VIEWPORT_HEIGHT },
-          deviceScaleFactor: 1,
-          ...(harness.reducedMotion ? { reducedMotion: 'reduce' as const } : {}),
-        });
+        const context = await active.newContext(
+          contextOptionsFor(harness, { width: task.viewport, height: VIEWPORT_HEIGHT }),
+        );
         try {
           const page = await context.newPage();
           page.setDefaultTimeout(NAVIGATION_TIMEOUT_MS);
@@ -151,6 +151,15 @@ export async function captureStories(options: CaptureOptions): Promise<CaptureRu
           await waitForStoryRender(page);
           await assertNoErrorOverlay(page);
 
+          const css = buildHarnessCss(harness);
+          if (css) await page.addStyleTag({ content: css });
+          if (harness.waitForNetworkIdle) {
+            // Bounded and non-fatal: a page that never goes idle (polling, a
+            // long-lived connection) must not fail an otherwise good capture.
+            await page
+              .waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS })
+              .catch(() => undefined);
+          }
           if (harness.waitForFonts) await waitForFonts(page);
           if (task.settings.waitFor) {
             await page.waitForSelector(task.settings.waitFor, { state: 'visible' });

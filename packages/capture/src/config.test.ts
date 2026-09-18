@@ -20,7 +20,13 @@ describe('resolveConfig', () => {
     });
     expect(resolved.harness).toEqual({
       reducedMotion: true,
+      freezeAnimations: true,
       waitForFonts: true,
+      waitForNetworkIdle: true,
+      hideCaret: true,
+      hideScrollbars: true,
+      fixedDeviceScaleFactor: true,
+      fixedViewport: true,
       disableGpu: false,
       forceSoftwareRendering: false,
     });

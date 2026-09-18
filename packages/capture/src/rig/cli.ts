@@ -22,15 +22,29 @@ const { values } = parseArgs({
     /** Single viewport by default: every extra one multiplies rig runtime. */
     viewports: { type: 'string', default: '1280' },
     'no-reduced-motion': { type: 'boolean', default: false },
+    'no-freeze-animations': { type: 'boolean', default: false },
     'no-wait-for-fonts': { type: 'boolean', default: false },
+    'no-wait-for-network-idle': { type: 'boolean', default: false },
+    'no-hide-caret': { type: 'boolean', default: false },
+    'no-hide-scrollbars': { type: 'boolean', default: false },
+    'no-fixed-device-scale-factor': { type: 'boolean', default: false },
+    'no-fixed-viewport': { type: 'boolean', default: false },
     'disable-gpu': { type: 'boolean', default: false },
     'force-software-rendering': { type: 'boolean', default: false },
   },
 });
 
+// Every technique is on unless turned off, so a rig run can bisect one flag
+// at a time and attribute a fix to it.
 const harness: HarnessConfig = {
   reducedMotion: !values['no-reduced-motion'],
+  freezeAnimations: !values['no-freeze-animations'],
   waitForFonts: !values['no-wait-for-fonts'],
+  waitForNetworkIdle: !values['no-wait-for-network-idle'],
+  hideCaret: !values['no-hide-caret'],
+  hideScrollbars: !values['no-hide-scrollbars'],
+  fixedDeviceScaleFactor: !values['no-fixed-device-scale-factor'],
+  fixedViewport: !values['no-fixed-viewport'],
   disableGpu: values['disable-gpu'],
   forceSoftwareRendering: values['force-software-rendering'],
 };
