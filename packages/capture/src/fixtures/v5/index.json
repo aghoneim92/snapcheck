@@ -1,0 +1,44 @@
+{
+  "v": 5,
+  "entries": {
+    "controls-button--docs": {
+      "type": "docs",
+      "id": "controls-button--docs",
+      "name": "Docs",
+      "title": "Controls/Button",
+      "importPath": "./src/components/Button.stories.tsx",
+      "tags": ["dev", "test", "autodocs", "manifest"],
+      "storiesImports": []
+    },
+    "controls-button--primary": {
+      "type": "story",
+      "subtype": "csf",
+      "id": "controls-button--primary",
+      "name": "Primary",
+      "title": "Controls/Button",
+      "importPath": "./src/components/Button.stories.tsx",
+      "tags": ["dev", "test", "autodocs", "manifest"],
+      "exportName": "Primary"
+    },
+    "forms-input--default": {
+      "type": "story",
+      "subtype": "csf",
+      "id": "forms-input--default",
+      "name": "Default",
+      "title": "Forms/Input",
+      "importPath": "./src/components/Input.stories.tsx",
+      "tags": ["dev", "test", "autodocs", "manifest", "no-snapshot"],
+      "exportName": "Default"
+    },
+    "forms-input--excluded-from-test": {
+      "type": "story",
+      "subtype": "csf",
+      "id": "forms-input--excluded-from-test",
+      "name": "Excluded From Test",
+      "title": "Forms/Input",
+      "importPath": "./src/components/Input.stories.tsx",
+      "tags": ["dev", "autodocs", "manifest"],
+      "exportName": "ExcludedFromTest"
+    }
+  }
+}

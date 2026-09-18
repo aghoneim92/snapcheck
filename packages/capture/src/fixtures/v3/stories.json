@@ -1,0 +1,41 @@
+{
+  "v": 3,
+  "stories": {
+    "controls-button--primary": {
+      "id": "controls-button--primary",
+      "name": "Primary",
+      "title": "Controls/Button",
+      "kind": "Controls/Button",
+      "importPath": "./src/components/Button.stories.tsx",
+      "parameters": {
+        "__id": "controls-button--primary",
+        "docsOnly": false,
+        "fileName": "./src/components/Button.stories.tsx"
+      }
+    },
+    "controls-button--page": {
+      "id": "controls-button--page",
+      "name": "Page",
+      "title": "Controls/Button",
+      "kind": "Controls/Button",
+      "importPath": "./src/components/Button.stories.mdx",
+      "parameters": {
+        "__id": "controls-button--page",
+        "docsOnly": true,
+        "fileName": "./src/components/Button.stories.mdx"
+      }
+    },
+    "forms-input--default": {
+      "id": "forms-input--default",
+      "name": "Default",
+      "title": "Forms/Input",
+      "kind": "Forms/Input",
+      "importPath": "./src/components/Input.stories.tsx",
+      "parameters": {
+        "__id": "forms-input--default",
+        "docsOnly": false,
+        "fileName": "./src/components/Input.stories.tsx"
+      }
+    }
+  }
+}

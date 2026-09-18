@@ -1,0 +1,37 @@
+{
+  "v": 4,
+  "entries": {
+    "controls-button--docs": {
+      "id": "controls-button--docs",
+      "title": "Controls/Button",
+      "name": "Docs",
+      "importPath": "./src/components/Button.stories.tsx",
+      "type": "docs",
+      "tags": ["autodocs"],
+      "storiesImports": []
+    },
+    "controls-button--primary": {
+      "id": "controls-button--primary",
+      "title": "Controls/Button",
+      "name": "Primary",
+      "importPath": "./src/components/Button.stories.tsx",
+      "type": "story",
+      "tags": ["autodocs", "story"]
+    },
+    "forms-input--default": {
+      "id": "forms-input--default",
+      "title": "Forms/Input",
+      "name": "Default",
+      "importPath": "./src/components/Input.stories.tsx",
+      "type": "story",
+      "tags": ["story", "no-snapshot"]
+    },
+    "forms-input--untagged": {
+      "id": "forms-input--untagged",
+      "title": "Forms/Input",
+      "name": "Untagged",
+      "importPath": "./src/components/Input.stories.tsx",
+      "type": "story"
+    }
+  }
+}

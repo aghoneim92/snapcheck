@@ -1,11 +1,11 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { setTimeout as sleep } from 'node:timers/promises';
 
 import { DEFAULT_HEADLESS_MODE, gpuArgs, launchChromium } from '../browser.ts';
 import { captureFingerprint, type EnvironmentFingerprint } from '../environment.ts';
 import { defaultConcurrency, runPool } from '../pool.ts';
 import { serveStatic } from '../serve.ts';
+import { readStoryIndex } from '../storybookIndex.ts';
 import { installRenderTracker, waitForFonts, waitForStoryRender } from './wait.ts';
 
 /**
@@ -48,7 +48,6 @@ export interface StubRunManifest {
   fingerprint: EnvironmentFingerprint;
   concurrency: number;
   harness: Required<StubHarness>;
-  simulateNetworkLatencyMs: number;
   stories: StubStoryResult[];
 }
 
@@ -57,26 +56,10 @@ export interface StubCaptureOptions {
   outDir: string;
   concurrency?: number;
   harness?: StubHarness;
-  /**
-   * Rig-only test knob: delay every request not served by the local static
-   * server by a random 0–N ms, to reproduce slow CI access to webfonts and
-   * other remote assets on a fast machine. 0 disables it.
-   */
-  simulateNetworkLatencyMs?: number;
-}
-
-/** Minimal index read; the real v3/v4/v5 reader lands in Phase 2. */
-async function readStoryIds(staticDir: string): Promise<string[]> {
-  const raw = await readFile(path.join(staticDir, 'index.json'), 'utf8');
-  const index = JSON.parse(raw) as { entries: Record<string, { id: string; type?: string }> };
-  return Object.values(index.entries)
-    .filter((entry) => entry.type === 'story')
-    .map((entry) => entry.id);
 }
 
 export async function captureStub(options: StubCaptureOptions): Promise<StubRunManifest> {
   const concurrency = options.concurrency ?? defaultConcurrency();
-  const latency = options.simulateNetworkLatencyMs ?? 0;
   const harness: Required<StubHarness> = {
     reducedMotion: options.harness?.reducedMotion ?? false,
     disableGpu: options.harness?.disableGpu ?? false,
@@ -84,7 +67,8 @@ export async function captureStub(options: StubCaptureOptions): Promise<StubRunM
     waitForRender: options.harness?.waitForRender ?? false,
     waitForFonts: options.harness?.waitForFonts ?? false,
   };
-  const storyIds = await readStoryIds(options.staticDir);
+  const index = await readStoryIndex(options.staticDir);
+  const storyIds = index.stories.map((story) => story.id);
   await mkdir(options.outDir, { recursive: true });
 
   const server = await serveStatic(options.staticDir);
@@ -105,15 +89,6 @@ export async function captureStub(options: StubCaptureOptions): Promise<StubRunM
       }
       try {
         const page = await context.newPage();
-        if (latency > 0) {
-          await page.route(
-            (url) => url.origin !== server.origin,
-            async (route) => {
-              await sleep(Math.random() * latency);
-              await route.continue();
-            },
-          );
-        }
         if (harness.waitForRender) await installRenderTracker(page);
 
         await page.goto(`${server.origin}/iframe.html?id=${encodeURIComponent(id)}&viewMode=story`);
@@ -130,13 +105,7 @@ export async function captureStub(options: StubCaptureOptions): Promise<StubRunM
       }
     });
 
-    const manifest: StubRunManifest = {
-      fingerprint,
-      concurrency,
-      harness,
-      simulateNetworkLatencyMs: latency,
-      stories,
-    };
+    const manifest: StubRunManifest = { fingerprint, concurrency, harness, stories };
     await writeFile(path.join(options.outDir, 'run.json'), JSON.stringify(manifest, null, 2));
     return manifest;
   } finally {
