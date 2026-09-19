@@ -115,7 +115,19 @@ jobs:
             if (!changed.every((r) => r.files.baseline && r.files.current && r.files.diff)) {
               throw new Error("a changed result is missing one of baseline/current/diff");
             }
-            console.log("report ok:", JSON.stringify(run.counts), "| diff images:", changed.length);
+            // At least one story must be caught by the absolute pixel floor
+            // rather than the fraction: a small control on a big empty page is
+            // exactly what the fraction alone misses. Fails if the floor
+            // regresses, without hard-coding a count that core-ui could shift.
+            const onlyFloor = changed.filter((r) => r.changedFraction <= run.threshold);
+            if (run.minChangedPixels !== false && onlyFloor.length < 1) {
+              throw new Error("no story was caught by minChangedPixels alone; the floor may be inert");
+            }
+            console.log(
+              "report ok:", JSON.stringify(run.counts),
+              "| diff images:", changed.length,
+              "| caught by the pixel floor alone:", onlyFloor.length,
+            );
           ' "$latest"
       - if: always()
         uses: actions/upload-artifact@v4

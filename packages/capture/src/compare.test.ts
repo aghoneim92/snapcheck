@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { compare, exceedsThreshold, pixelmatchComparator } from './compare.ts';
+import { compare, exceedsThreshold, isVisualChange, pixelmatchComparator } from './compare.ts';
 import type { DecodedImage } from './pixels.ts';
 
 function image(
@@ -93,6 +93,47 @@ describe('antialiasing tolerance', () => {
   });
 });
 
+describe('isVisualChange', () => {
+  // A small control on a large empty page: plainly visible, but a tiny share
+  // of the capture. This is the case the fraction alone silently passes.
+  const sparse = {
+    changedPixels: 300,
+    totalPixels: 1280 * 720,
+    changedFraction: 300 / (1280 * 720),
+    sameDimensions: true,
+  };
+
+  it('catches a change the fraction rule alone would hide', () => {
+    expect(exceedsThreshold(sparse, 0.01)).toBe(false);
+    expect(isVisualChange(sparse, { threshold: 0.01, minChangedPixels: 250 })).toBe(true);
+  });
+
+  it('still fails on the fraction when the floor is not reached', () => {
+    const dense = { ...sparse, changedPixels: 100, changedFraction: 0.5 };
+    expect(isVisualChange(dense, { threshold: 0.01, minChangedPixels: 250 })).toBe(true);
+  });
+
+  it('passes a change exactly at the floor', () => {
+    expect(
+      isVisualChange({ ...sparse, changedPixels: 250 }, { threshold: 0.01, minChangedPixels: 250 }),
+    ).toBe(false);
+  });
+
+  it('falls back to the fraction alone when the floor is disabled', () => {
+    expect(isVisualChange(sparse, { threshold: 0.01, minChangedPixels: false })).toBe(false);
+    expect(isVisualChange(sparse, { threshold: 0.01 })).toBe(false);
+  });
+
+  it('reports no change when neither rule is broken', () => {
+    expect(
+      isVisualChange(
+        { ...sparse, changedPixels: 0, changedFraction: 0 },
+        { threshold: 0.01, minChangedPixels: 250 },
+      ),
+    ).toBe(false);
+  });
+});
+
 describe('exceedsThreshold', () => {
   const result = {
     changedPixels: 1,
@@ -107,6 +148,10 @@ describe('exceedsThreshold', () => {
 
   it('fails a change above the threshold', () => {
     expect(exceedsThreshold(result, 0.009)).toBe(true);
+  });
+
+  it('ignores the pixel floor: it is the fraction rule alone', () => {
+    expect(exceedsThreshold({ ...result, changedPixels: 100_000 }, 0.5)).toBe(false);
   });
 
   it('fails everything at a zero threshold except an identical image', () => {

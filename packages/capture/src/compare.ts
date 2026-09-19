@@ -85,9 +85,31 @@ export function compare(a: DecodedImage, b: DecodedImage, options?: CompareOptio
 }
 
 /**
- * The pass/fail rule: a story fails when more than `threshold` of the image
- * changed. Exactly at the threshold passes.
+ * The fraction rule: more than `threshold` of the image changed. Exactly at
+ * the threshold passes.
  */
 export function exceedsThreshold(result: CompareResult, threshold: number): boolean {
   return result.changedFraction > threshold;
+}
+
+export interface ChangeLimits {
+  threshold: number;
+  /** Absolute pixel floor; `false` to rely on the fraction alone. */
+  minChangedPixels?: number | false;
+}
+
+/**
+ * The pass/fail rule, as used by a snapshot run: a story changed when it broke
+ * the fraction rule **or** the absolute pixel floor.
+ *
+ * The floor exists because the fraction is measured against the whole capture.
+ * On a story that draws one small control on an otherwise empty page, a
+ * visible change is a fraction of a percent, so the fraction alone silently
+ * passes it. Both rules use "more than", so a value exactly at either limit
+ * passes.
+ */
+export function isVisualChange(result: CompareResult, limits: ChangeLimits): boolean {
+  if (exceedsThreshold(result, limits.threshold)) return true;
+  const floor = limits.minChangedPixels;
+  return floor !== false && floor !== undefined && result.changedPixels > floor;
 }

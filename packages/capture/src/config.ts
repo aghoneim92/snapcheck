@@ -25,6 +25,20 @@ export interface SnapshotConfig {
    * dithering between runs; that is a per-pixel question, not an area one.
    */
   pixelThreshold: number;
+  /**
+   * Absolute floor: a story also fails when more than this many pixels
+   * changed, however small a share of the image that is. `false` disables it.
+   *
+   * `threshold` alone measures change as a share of the whole capture, so on a
+   * story that draws a small control on a large empty page a plainly visible
+   * change is a fraction of a percent and passes. Measured on this repo's
+   * button stories, an 8px padding change was visible in 14 of 18 captures but
+   * only 2 cleared `threshold: 0.01`; the smallest hidden one was 300 pixels.
+   *
+   * Default 250 — above the zero noise floor measured within a single
+   * environment, far below any fraction worth configuring.
+   */
+  minChangedPixels: number | false;
 }
 
 /**
@@ -111,6 +125,7 @@ export const DEFAULT_SNAPSHOT: SnapshotConfig = {
   viewports: [375, 1280],
   threshold: 0.01,
   pixelThreshold: 0.1,
+  minChangedPixels: 250,
 };
 
 export const DEFAULT_HARNESS: Required<HarnessConfig> = {

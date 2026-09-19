@@ -8,7 +8,7 @@ import {
   writeBaselineManifest,
   type BaselineManifest,
 } from './baselines.ts';
-import { compare, exceedsThreshold } from './compare.ts';
+import { compare, isVisualChange } from './compare.ts';
 import { isQuarantined, resolveConfig, type SnapcheckConfig } from './config.ts';
 import { fingerprintDifferences, type EnvironmentFingerprint } from './environment.ts';
 import { decodePng, encodePng, pixelHash } from './pixels.ts';
@@ -51,6 +51,7 @@ export interface SnapshotRunResult {
   harness: Record<string, boolean>;
   threshold: number;
   pixelThreshold: number;
+  minChangedPixels: number | false;
   counts: SnapshotCounts;
   results: SnapshotResult[];
   /** True when new baselines were written for stories that had none. */
@@ -172,6 +173,7 @@ export async function runSnapshot(options: RunSnapshotOptions): Promise<Snapshot
     harness: run.harness as unknown as Record<string, boolean>,
     threshold: config.snapshot.threshold,
     pixelThreshold: config.snapshot.pixelThreshold,
+    minChangedPixels: config.snapshot.minChangedPixels,
     counts: countStatuses(results),
     results,
     wroteNewBaselines,
@@ -260,7 +262,10 @@ async function evaluateCapture(input: EvaluateInput): Promise<SnapshotResult> {
   const comparison = compare(baseline, current, {
     pixelThreshold: config.snapshot.pixelThreshold,
   });
-  const aboveThreshold = exceedsThreshold(comparison, config.snapshot.threshold);
+  const aboveThreshold = isVisualChange(comparison, {
+    threshold: config.snapshot.threshold,
+    minChangedPixels: config.snapshot.minChangedPixels,
+  });
 
   if (aboveThreshold && comparison.diffImage) {
     await mkdir(input.diffDir, { recursive: true });

@@ -6,6 +6,7 @@ export default defineConfig({
     viewports: [375, 1280],
     threshold: 0.01,
     pixelThreshold: 0.1,
+    minChangedPixels: 250,
   },
   quarantine: [],
   harness: {},

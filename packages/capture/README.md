@@ -51,15 +51,31 @@ export default defineConfig({
 });
 ```
 
-### The two thresholds are not interchangeable
+### The three comparison knobs are not interchangeable
 
-- **`threshold`** is the **fraction of the image that changed**, and it is the
-  pass/fail knob. A story fails when `changedPixels / totalPixels > threshold`.
-  Reach for this one when a story is failing over noise you consider
-  acceptable. Exactly at the threshold passes.
+- **`threshold`** is the **fraction of the image that changed**. A story fails
+  when `changedPixels / totalPixels > threshold`. Reach for this one when a
+  story is failing over noise you consider acceptable. Exactly at the threshold
+  passes.
 - **`pixelThreshold`** is **per-pixel colour distance**: how different two
   pixels must be before they count as changed at all. Reach for this one when a
   gradient or shadow renders with slightly different values between runs.
+- **`minChangedPixels`** is an **absolute floor**: a story also fails when more
+  than this many pixels changed, however small a share of the image that is.
+  `false` disables it.
+
+A story fails if **either** `threshold` or `minChangedPixels` is exceeded.
+
+The floor exists because a fraction is measured against the whole capture, and
+most stories draw a small control on a large, mostly empty page. Changing one
+button's padding by 8px in this repo altered 14 of 18 captures visibly, but
+only 2 cleared `threshold: 0.01` — a plainly visible change came to 0.03% of a
+1280×720 page. The smallest genuinely-hidden change was 300 pixels, hence the
+default of 250.
+
+The deeper fix is to capture the story's element rather than the whole page, so
+the denominator is the story instead of the viewport. That is planned, not
+done; the floor is the cheap guard in the meantime.
 
 Antialiasing tolerance is on by default.
 
