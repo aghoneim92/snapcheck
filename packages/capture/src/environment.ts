@@ -4,6 +4,7 @@ import os from 'node:os';
 import type { Browser } from 'playwright';
 
 import type { HeadlessMode } from './browser.ts';
+import type { HttpCacheMode } from './httpCache.ts';
 
 /**
  * Everything outside the story itself that changes rendered pixels. Snapshots
@@ -24,6 +25,22 @@ export interface EnvironmentFingerprint {
     /** WebGL renderer string, e.g. `ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Max)`. */
     renderer: string;
   };
+  /**
+   * Where external responses came from. A baseline captured against the live
+   * network is not comparable to one captured from a cache, nor to one from a
+   * different cache. Absent on fingerprints written before the field existed,
+   * which were all captured against the network.
+   */
+  httpCache?: { mode: HttpCacheMode; manifestHash?: string };
+}
+
+/**
+ * Record and replay serve the same cached bytes, so they compare by the cache
+ * they served; bypass is the live network.
+ */
+function httpCacheSource(httpCache: EnvironmentFingerprint['httpCache']): string {
+  if (!httpCache || httpCache.mode === 'bypass') return 'network';
+  return `cache ${httpCache.manifestHash ?? 'unknown'}`;
 }
 
 const require = createRequire(import.meta.url);
@@ -73,6 +90,7 @@ function flat(f: EnvironmentFingerprint): Record<string, string> {
     headlessMode: f.headlessMode,
     'gpu.active': String(f.gpu.active),
     'gpu.renderer': f.gpu.renderer,
+    httpCache: httpCacheSource(f.httpCache),
   };
 }
 

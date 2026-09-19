@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import {
   decodePng,
+  fixtureDifferences,
   pixelHash,
   promoteBaseline,
   readBaselineManifest,
@@ -54,6 +55,18 @@ export async function runApprove(input: ApproveInput): Promise<number> {
 
   const baselineDir = path.join(snapcheckDir, 'baselines');
   const manifest = await readBaselineManifest(baselineDir);
+
+  // A run from before a fixture re-baseline must not be mixed into baselines
+  // for a different fixture build.
+  const fixtureChange = fixtureDifferences(manifest.fixture, run.fixture);
+  if (Object.keys(manifest.entries).length > 0 && fixtureChange.length > 0) {
+    console.error(
+      `Not approving ${runDir}: it captured a different fixture build than the baselines.\n` +
+        fixtureChange.map((line) => `  ${line}`).join('\n'),
+    );
+    return 2;
+  }
+
   const changed = run.results.filter(
     (result) => result.status === 'changed' || result.status === 'quarantined',
   );

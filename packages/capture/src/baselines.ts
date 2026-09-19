@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { EnvironmentFingerprint } from './environment.ts';
+import type { FixtureManifest } from './fixture.ts';
 
 /**
  * Baselines at M0: PNGs on disk in a gitignored directory, keyed by
@@ -33,6 +34,11 @@ export interface BaselineManifest {
    * changes, so a mismatch is warned about rather than reported as a diff.
    */
   fingerprint?: EnvironmentFingerprint;
+  /**
+   * Fixture build the baselines were captured against, for builds that carry
+   * a `snapcheck-fixture.json`. A different fixture invalidates every entry.
+   */
+  fixture?: FixtureManifest;
   entries: Record<string, BaselineEntry>;
 }
 
@@ -49,7 +55,12 @@ export async function readBaselineManifest(baselineDir: string): Promise<Baselin
   try {
     const raw = await readFile(path.join(baselineDir, BASELINE_MANIFEST), 'utf8');
     const parsed = JSON.parse(raw) as BaselineManifest;
-    return { version: 1, fingerprint: parsed.fingerprint, entries: parsed.entries ?? {} };
+    return {
+      version: 1,
+      fingerprint: parsed.fingerprint,
+      fixture: parsed.fixture,
+      entries: parsed.entries ?? {},
+    };
   } catch {
     return emptyManifest();
   }

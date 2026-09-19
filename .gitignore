@@ -7,3 +7,7 @@ dist/
 # snapcheck baselines and run output. Local baselines are the degraded
 # single-user mode for M0; committing them is an explicit opt-in.
 .snapcheck/
+
+# Third-party Storybook fixtures, cloned and built at pinned commits by
+# `pnpm fixture build <name>`. Never vendored: their repo, their conflicts.
+.fixtures/

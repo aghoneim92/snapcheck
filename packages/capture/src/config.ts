@@ -1,3 +1,4 @@
+import type { HttpCacheConfig } from './httpCache.ts';
 import type { ReadStoryIndexOptions } from './storybookIndex.ts';
 
 /**
@@ -104,6 +105,8 @@ export interface SnapcheckConfig {
   stories?: Record<string, StorySettings>;
   /** Storybook index reader options. */
   index?: ReadStoryIndexOptions;
+  /** Record and replay external HTTP requests. */
+  httpCache?: HttpCacheConfig;
 }
 
 export interface ResolvedConfig {
@@ -114,6 +117,7 @@ export interface ResolvedConfig {
   harness: Required<HarnessConfig>;
   stories: Record<string, StorySettings>;
   index: ReadStoryIndexOptions;
+  httpCache?: HttpCacheConfig;
 }
 
 /** Identity function that types a `snapcheck.config.ts` default export. */
@@ -151,6 +155,7 @@ export function resolveConfig(config: SnapcheckConfig): ResolvedConfig {
     harness: { ...DEFAULT_HARNESS, ...config.harness },
     stories: config.stories ?? {},
     index: config.index ?? {},
+    httpCache: config.httpCache,
   };
 }
 

@@ -11,6 +11,13 @@ import {
 import { compare, isVisualChange } from './compare.ts';
 import { isQuarantined, resolveConfig, type SnapcheckConfig } from './config.ts';
 import { fingerprintDifferences, type EnvironmentFingerprint } from './environment.ts';
+import {
+  fixtureDifferences,
+  FixtureMismatchError,
+  readFixtureManifest,
+  type FixtureManifest,
+} from './fixture.ts';
+import { resolveHttpCache, type HttpCacheMode, type HttpCacheSummary } from './httpCache.ts';
 import { decodePng, encodePng, pixelHash } from './pixels.ts';
 import { captureStories, type CaptureResult } from './runner/capture.ts';
 
@@ -48,6 +55,10 @@ export interface SnapshotRunResult {
   baselineFingerprint?: EnvironmentFingerprint;
   /** Non-empty when the two fingerprints differ: a warning, not a visual change. */
   fingerprintMismatch: string[];
+  /** Fixture build captured, when the static build carries a fixture manifest. */
+  fixture?: FixtureManifest;
+  /** Absent when the run used the network directly. */
+  httpCache?: HttpCacheSummary;
   harness: Record<string, boolean>;
   threshold: number;
   pixelThreshold: number;
@@ -68,6 +79,10 @@ export interface RunSnapshotOptions {
   filter?: (storyId: string) => boolean;
   /** Overrides the timestamped run directory name. */
   runId?: string;
+  /** HTTP cache mode, overriding config. */
+  httpCacheMode?: HttpCacheMode;
+  /** Resolves a configured `httpCache.dir`. Default: the working directory. */
+  root?: string;
 }
 
 interface StatusInput {
@@ -89,6 +104,30 @@ export function decideStatus(input: StatusInput): SnapshotStatus {
   if (!input.hasBaseline) return 'new';
   if (!input.aboveThreshold) return 'unchanged';
   return input.quarantined ? 'quarantined' : 'changed';
+}
+
+/**
+ * Whether existing baselines belong to a different fixture build than the one
+ * being captured. Throws unless the run is re-baselining, because reporting
+ * those differences as visual changes would blame snapcheck for the fixture.
+ * Plain Storybook builds carry no fixture manifest on either side and never
+ * match here.
+ *
+ * Returns true when the run must discard every existing baseline: after a
+ * fixture change none of them is valid, including the ones that happen to sit
+ * under the threshold.
+ */
+export function checkBaselineFixture(input: {
+  baseline: FixtureManifest | undefined;
+  current: FixtureManifest | undefined;
+  hasBaselines: boolean;
+  update: boolean;
+}): boolean {
+  if (!input.hasBaselines) return false;
+  const differences = fixtureDifferences(input.baseline, input.current);
+  if (differences.length === 0) return false;
+  if (!input.update) throw new FixtureMismatchError(input.baseline, input.current, differences);
+  return true;
 }
 
 function countStatuses(results: readonly SnapshotResult[]): SnapshotCounts {
@@ -121,9 +160,29 @@ export async function runSnapshot(options: RunSnapshotOptions): Promise<Snapshot
   const currentDir = path.join(runDir, 'current');
   const diffDir = path.join(runDir, 'diff');
 
+  // Checked before capturing: a fixture change makes every comparison
+  // meaningless, so there is no point spending minutes producing them.
+  const manifest = await readBaselineManifest(baselineDir);
+  const fixture = await readFixtureManifest(config.staticDir);
+  const discardBaselines = checkBaselineFixture({
+    baseline: manifest.fixture,
+    current: fixture,
+    hasBaselines: Object.keys(manifest.entries).length > 0,
+    update: options.update ?? false,
+  });
+
+  const httpCache = await resolveHttpCache({
+    config: config.httpCache,
+    mode: options.httpCacheMode,
+    snapcheckDir,
+    staticDir: config.staticDir,
+    root: options.root,
+  });
+
   const run = await captureStories({
     staticDir: config.staticDir,
     outDir: currentDir,
+    httpCache,
     concurrency: options.concurrency ?? config.concurrency,
     viewports: config.snapshot.viewports,
     harness: config.harness,
@@ -132,12 +191,14 @@ export async function runSnapshot(options: RunSnapshotOptions): Promise<Snapshot
     filter: options.filter,
   });
 
-  const manifest = await readBaselineManifest(baselineDir);
-  const updatedManifest: BaselineManifest = {
-    version: 1,
-    fingerprint: manifest.fingerprint ?? run.fingerprint,
-    entries: { ...manifest.entries },
-  };
+  const updatedManifest: BaselineManifest = discardBaselines
+    ? { version: 1, fingerprint: run.fingerprint, fixture, entries: {} }
+    : {
+        version: 1,
+        fingerprint: manifest.fingerprint ?? run.fingerprint,
+        fixture,
+        entries: { ...manifest.entries },
+      };
 
   const results: SnapshotResult[] = [];
   let wroteNewBaselines = false;
@@ -166,10 +227,13 @@ export async function runSnapshot(options: RunSnapshotOptions): Promise<Snapshot
   const result: SnapshotRunResult = {
     runDir,
     fingerprint: run.fingerprint,
-    baselineFingerprint: manifest.fingerprint,
-    fingerprintMismatch: manifest.fingerprint
-      ? fingerprintDifferences(manifest.fingerprint, run.fingerprint)
-      : [],
+    baselineFingerprint: discardBaselines ? undefined : manifest.fingerprint,
+    fingerprintMismatch:
+      manifest.fingerprint && !discardBaselines
+        ? fingerprintDifferences(manifest.fingerprint, run.fingerprint)
+        : [],
+    fixture,
+    httpCache: run.httpCache,
     harness: run.harness as unknown as Record<string, boolean>,
     threshold: config.snapshot.threshold,
     pixelThreshold: config.snapshot.pixelThreshold,

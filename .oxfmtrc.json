@@ -12,5 +12,5 @@
     "stylesheet": "./packages/core-ui/src/styles.css",
     "functions": ["cn"]
   },
-  "ignorePatterns": ["dist", "storybook-static", "pnpm-lock.yaml"]
+  "ignorePatterns": ["dist", "storybook-static", "pnpm-lock.yaml", ".fixtures"]
 }

@@ -3,6 +3,8 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 
 import type { HarnessConfig } from '../config.ts';
+import { readFixtureManifest, type FixtureManifest } from '../fixture.ts';
+import { parseHttpCacheMode, resolveHttpCache, type HttpCacheSummary } from '../httpCache.ts';
 import { captureStories } from '../runner/capture.ts';
 import { compareRuns, type RigReport, type RigRun } from './determinism.ts';
 
@@ -21,6 +23,8 @@ const { values } = parseArgs({
     out: { type: 'string', default: '.snapcheck/rig' },
     /** Single viewport by default: every extra one multiplies rig runtime. */
     viewports: { type: 'string', default: '1280' },
+    /** record, replay or bypass; default replay when a cache exists. */
+    'http-cache': { type: 'string' },
     'no-reduced-motion': { type: 'boolean', default: false },
     'no-freeze-animations': { type: 'boolean', default: false },
     'no-wait-for-fonts': { type: 'boolean', default: false },
@@ -57,8 +61,15 @@ function formatPercent(fraction: number): string {
     : `${(fraction * 100).toFixed(3)}%`;
 }
 
-function printReport(report: RigReport, run: RigRun): void {
+function printReport(report: RigReport, run: RigRun, fixture: FixtureManifest | undefined): void {
   const { fingerprint } = run;
+  if (fixture) {
+    console.log(
+      `\nFixture ${fixture.fixture} ${fixture.tag} (${fixture.sha.slice(0, 12)}), ` +
+        `Storybook ${fixture.storybookVersion}, index v${fixture.index.version}, ` +
+        `${fixture.index.stories} stories`,
+    );
+  }
   console.log('\nEnvironment');
   console.log(`  ${fingerprint.os} ${fingerprint.arch}`);
   console.log(
@@ -116,18 +127,69 @@ async function main(): Promise<number> {
     return 2;
   }
 
+  const fixture = await readFixtureManifest(staticDir);
+  const httpCache = await resolveHttpCache({
+    config: undefined,
+    mode: values['http-cache'] ? parseHttpCacheMode(values['http-cache']) : undefined,
+    snapcheckDir: '.snapcheck',
+    staticDir,
+  });
+  console.log(
+    `HTTP cache: ${httpCache.mode}${httpCache.mode === 'bypass' ? '' : ` (${httpCache.dir})`}`,
+  );
+  let lastCache: HttpCacheSummary | undefined;
   const root = path.resolve(values.out, new Date().toISOString().replaceAll(':', '-'));
+
+  // Record in a warm-up pass that is not compared: a recording run still waits
+  // on real network latency, so its captures are not what replay produces.
+  // Every compared run then replays it, with the network off.
+  let replayCache = httpCache;
+  if (httpCache.mode === 'record') {
+    const started = performance.now();
+    const recording = await captureStories({
+      staticDir,
+      outDir: path.join(root, 'record'),
+      harness,
+      viewports,
+      httpCache,
+    });
+    const cache = recording.httpCache as HttpCacheSummary;
+    const failed = recording.results.filter((result) => result.status === 'failed').length;
+    console.log(
+      `record: ${cache.entries} responses, ${(cache.bytes / 1024 / 1024).toFixed(2)} MB, ` +
+        `${cache.recordFailures.length} failed to record, ${failed} captures failed, ` +
+        `${((performance.now() - started) / 1000).toFixed(1)}s (not compared)`,
+    );
+    for (const failure of cache.recordFailures) console.log(`    could not record: ${failure}`);
+    replayCache = { ...httpCache, mode: 'replay' };
+  }
+
   const runs: RigRun[] = [];
   for (let index = 1; index <= runCount; index++) {
     const dir = path.join(root, `run-${String(index).padStart(2, '0')}`);
     const started = performance.now();
     // Runs must not overlap: each one stands in for a separate CI run.
     // oxlint-disable-next-line no-await-in-loop
-    const run = await captureStories({ staticDir, outDir: dir, harness, viewports });
+    const run = await captureStories({
+      staticDir,
+      outDir: dir,
+      harness,
+      viewports,
+      httpCache: replayCache,
+    });
+    lastCache = run.httpCache;
     const failures = run.results.filter((result) => result.status === 'failed');
     console.log(
       `run ${index}/${runCount}: ${run.results.length} captures, ${failures.length} failed, concurrency ${run.concurrency}, ${((performance.now() - started) / 1000).toFixed(1)}s`,
     );
+    if (run.httpCache) {
+      const cache = run.httpCache;
+      console.log(
+        `    http-cache ${cache.mode}: ${cache.entries} responses, ` +
+          `${(cache.bytes / 1024 / 1024).toFixed(2)} MB, ${cache.hits} served, ` +
+          `${cache.misses.length} missed, ${cache.recordFailures.length} failed to record`,
+      );
+    }
     for (const failure of failures.slice(0, 5)) {
       console.log(
         `    ${failure.key}: ${failure.renderError ? 'render error: ' : ''}${failure.error}`,
@@ -146,8 +208,11 @@ async function main(): Promise<number> {
 
   const report = await compareRuns(runs);
   await mkdir(root, { recursive: true });
-  await writeFile(path.join(root, 'report.json'), JSON.stringify({ harness, ...report }, null, 2));
-  printReport(report, runs[0] as RigRun);
+  await writeFile(
+    path.join(root, 'report.json'),
+    JSON.stringify({ fixture, harness, httpCache: lastCache, ...report }, null, 2),
+  );
+  printReport(report, runs[0] as RigRun, fixture);
   console.log(`\nReport: ${path.join(root, 'report.json')}`);
   return report.stable ? 0 : 1;
 }

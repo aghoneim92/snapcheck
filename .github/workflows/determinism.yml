@@ -27,7 +27,42 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      # The HTTP cache tests drive a real browser against a local server.
+      - name: Install Chromium
+        run: pnpm --filter @snapcheck/capture exec playwright install --with-deps chromium
       - run: pnpm test
+
+  # Grafana's Saga Storybook, built from source at the commit pinned in
+  # packages/fixtures/pins.json. The build is a one-time cost: it is cached
+  # under a key that only a pin bump or a change to the build procedure moves,
+  # and `pnpm fixture build` reuses a restored build whose manifest matches the
+  # pin instead of cloning. Jobs that capture it download the artifact.
+  grafana-fixture:
+    runs-on: ubuntu-24.04
+    # Non-blocking: a third-party build breaking (an install that no longer
+    # resolves, say) is not a snapcheck failure.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .fixtures/grafana/packages/grafana-ui/dist/storybook
+          key: fixture-grafana-${{ hashFiles('packages/fixtures/pins.json', 'packages/fixtures/src/build.ts', 'packages/fixtures/src/definitions.ts') }}
+      - name: Build or reuse
+        run: pnpm fixture build grafana
+      - name: Verify against the pin
+        run: pnpm fixture verify grafana
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fixture-grafana
+          path: .fixtures/grafana/packages/grafana-ui/dist/storybook
+          retention-days: 7
 
   rig:
     runs-on: ubuntu-24.04

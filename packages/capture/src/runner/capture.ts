@@ -12,6 +12,13 @@ import {
   type StorySettings,
 } from '../config.ts';
 import { captureFingerprint, type EnvironmentFingerprint } from '../environment.ts';
+import {
+  HttpCache,
+  httpCacheLaunchArgs,
+  type HttpCacheMode,
+  type HttpCacheSession,
+  type HttpCacheSummary,
+} from '../httpCache.ts';
 import { defaultConcurrency, runPool } from '../pool.ts';
 import { serveStatic } from '../serve.ts';
 import { readStoryIndex, type ReadStoryIndexOptions } from '../storybookIndex.ts';
@@ -58,6 +65,8 @@ export interface CaptureRunResult {
   harness: Required<HarnessConfig>;
   /** Index format version the story list came from. */
   indexVersion: 3 | 4 | 5;
+  /** Absent when the run used the network directly. */
+  httpCache?: HttpCacheSummary;
   results: CaptureResult[];
 }
 
@@ -78,6 +87,12 @@ export interface CaptureOptions {
   index?: ReadStoryIndexOptions;
   /** Restrict the run to story IDs passing this test. */
   filter?: (storyId: string) => boolean;
+  /**
+   * External requests: recorded to, replayed from, or bypassing the cache in
+   * `dir`. Default bypass. The mode must already be resolved; see
+   * `resolveHttpCacheMode`.
+   */
+  httpCache?: { mode: HttpCacheMode; dir: string };
 }
 
 interface Task {
@@ -110,8 +125,16 @@ export async function captureStories(options: CaptureOptions): Promise<CaptureRu
 
   await mkdir(options.outDir, { recursive: true });
   const server = await serveStatic(options.staticDir);
+  const cacheMode = options.httpCache?.mode ?? 'bypass';
+  const cache =
+    options.httpCache && cacheMode !== 'bypass'
+      ? await HttpCache.open({ mode: cacheMode, dir: options.httpCache.dir, origin: server.origin })
+      : undefined;
   const launch = () =>
-    launchChromium({ headlessMode: DEFAULT_HEADLESS_MODE, args: gpuArgs(harness) });
+    launchChromium({
+      headlessMode: DEFAULT_HEADLESS_MODE,
+      args: [...gpuArgs(harness), ...httpCacheLaunchArgs(cacheMode)],
+    });
   let browser = await launch();
 
   // A crashed browser (OOM, for instance) would otherwise fail every remaining
@@ -141,7 +164,9 @@ export async function captureStories(options: CaptureOptions): Promise<CaptureRu
         const context = await active.newContext(
           contextOptionsFor(harness, { width: task.viewport, height: VIEWPORT_HEIGHT }),
         );
+        let cacheSession: HttpCacheSession | undefined;
         try {
+          cacheSession = await cache?.attach(context);
           const page = await context.newPage();
           page.setDefaultTimeout(NAVIGATION_TIMEOUT_MS);
           await installRenderTracker(page);
@@ -165,11 +190,17 @@ export async function captureStories(options: CaptureOptions): Promise<CaptureRu
             await page.waitForSelector(task.settings.waitFor, { state: 'visible' });
           }
           if (task.settings.delay) await sleep(task.settings.delay);
+          // A story that asked for something the cache could not serve
+          // rendered without it; that capture is wrong, not merely different.
+          if (cache?.mode === 'record') await cacheSession?.settle();
+          cacheSession?.assertComplete();
 
           const file = `${key}.png`;
           await page.screenshot({ path: path.join(options.outDir, file), fullPage: true });
           return { ...base, status: 'captured', file, durationMs: performance.now() - started };
         } finally {
+          // Never close a context under a response the cache is still recording.
+          await cacheSession?.settle();
           await context.close().catch(() => undefined);
         }
       } catch (error) {
@@ -183,11 +214,14 @@ export async function captureStories(options: CaptureOptions): Promise<CaptureRu
       }
     });
 
+    const httpCache = await cache?.close();
+    fingerprint.httpCache = { mode: cacheMode, manifestHash: httpCache?.manifestHash };
     const run: CaptureRunResult = {
       fingerprint,
       concurrency,
       harness,
       indexVersion: index.version,
+      httpCache,
       results,
     };
     await writeFile(path.join(options.outDir, 'run.json'), JSON.stringify(run, null, 2));

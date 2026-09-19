@@ -41,6 +41,26 @@ describe('baseline manifest', () => {
 
     expect(await readBaselineManifest(dir)).toEqual(manifest);
   });
+
+  it('round-trips the fixture the baselines were captured against', async () => {
+    const dir = await tempDir();
+    const manifest = emptyManifest();
+    manifest.fixture = {
+      manifestVersion: 1,
+      fixture: 'grafana',
+      repo: 'https://github.com/grafana/grafana.git',
+      sha: '3db12332b66497c31f8ad2a5fb0eb0fe0ca05a7e',
+      tag: 'v13.2.2',
+      commitDate: '2026-09-15T11:07:13Z',
+      builtAt: '2026-09-19T00:00:00.000Z',
+      storybookVersion: '10.3.6',
+      index: { file: 'index.json', version: 5, entries: 2, stories: 1, docs: 1, sha256: 'aa' },
+      build: { node: 'v24.18.0', platform: 'darwin', arch: 'arm64', durationMs: 1 },
+    };
+    await writeBaselineManifest(dir, manifest);
+
+    expect((await readBaselineManifest(dir)).fixture).toEqual(manifest.fixture);
+  });
 });
 
 describe('promoteBaseline', () => {

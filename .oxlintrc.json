@@ -53,18 +53,22 @@
       }
     },
     {
-      "files": ["packages/capture/**", "packages/cli/**"],
+      "files": ["packages/capture/**", "packages/cli/**", "packages/fixtures/**"],
       "env": {
         "node": true,
         "browser": false
       }
     },
     {
-      "files": ["packages/capture/src/rig/cli.ts", "packages/cli/**"],
+      "files": [
+        "packages/capture/src/rig/cli.ts",
+        "packages/cli/**",
+        "packages/fixtures/src/cli.ts"
+      ],
       "rules": {
         "no-console": "off"
       }
     }
   ],
-  "ignorePatterns": ["dist", "storybook-static", "node_modules"]
+  "ignorePatterns": ["dist", "storybook-static", "node_modules", ".fixtures"]
 }

@@ -1,0 +1,22 @@
+{
+  "name": "@snapcheck/fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Builds snapcheck's third-party Storybook fixtures from source at pinned commits. Test infrastructure, never published.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@snapcheck/capture": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

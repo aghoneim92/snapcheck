@@ -10,6 +10,7 @@
     "test": "pnpm -r --if-present test",
     "rig:determinism": "pnpm build-storybook && node packages/capture/src/rig/cli.ts --static-dir packages/core-ui/storybook-static",
     "snapshot": "pnpm build-storybook && node packages/cli/src/cli.ts snapshot",
+    "fixture": "node packages/fixtures/src/cli.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt .",

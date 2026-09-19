@@ -91,6 +91,26 @@ Measured by bisecting on CI: ~39s per run without it, ~52s with it. No story in
 stays on because a story that does fetch needs it, and a missed request is a
 wrong snapshot rather than a slow one — but its value is currently unproven.
 
+### `waitForNetworkIdle` does not wait for requests a story starts late
+
+Found on the Grafana fixture. Playwright's `networkidle` is a lifecycle event
+that fires **once per navigation**; once it has fired, waiting for it returns
+immediately. A request a story starts after that first quiet window — a React
+effect rendering an `<img>` after mount, as Grafana's `Avatar` does — is never
+waited for. Reproduced in isolation: an image inserted 800ms after load, awaited
+at 1000ms, resolved in 6ms with the image incomplete.
+
+On `iconography-avatar--basic` the avatar request started at 913ms, network
+idle resolved at 1555ms, and the screenshot was taken at 1598ms with the image
+still loading; it arrives around 1600ms. Whether the image is in the capture
+depends on network latency. This applies to every mode, including plain bypass
+captures.
+
+Not fixed yet, deliberately: the Grafana failure profile is being measured
+with the harness unchanged first. HTTP replay narrows it — a cached response is
+answered from disk within milliseconds of the request — but does not close it,
+since nothing waits for the image to decode and paint.
+
 ### Determinism evidence covers one viewport
 
 `pnpm rig:determinism` captures at 1280 only, because each extra viewport

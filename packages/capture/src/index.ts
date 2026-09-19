@@ -38,6 +38,31 @@ export {
   type EnvironmentFingerprint,
 } from './environment.ts';
 export {
+  FIXTURE_MANIFEST_FILE,
+  fixtureDifferences,
+  FixtureMismatchError,
+  readFixtureManifest,
+  type FixtureManifest,
+} from './fixture.ts';
+export {
+  HTTP_CACHE_MODES,
+  HttpCache,
+  httpCacheLaunchArgs,
+  httpCacheManifestHash,
+  HttpCacheMissError,
+  parseHttpCacheMode,
+  readHttpCacheManifest,
+  requestKey,
+  resolveHttpCache,
+  resolveHttpCacheMode,
+  type HttpCacheConfig,
+  type HttpCacheEntry,
+  type HttpCacheManifest,
+  type HttpCacheMode,
+  type HttpCacheSession,
+  type HttpCacheSummary,
+} from './httpCache.ts';
+export {
   decodePng,
   encodePng,
   exactDiff,
@@ -78,6 +103,7 @@ export {
 export { renderReport } from './report.ts';
 export { serveStatic, type StaticServer } from './serve.ts';
 export {
+  checkBaselineFixture,
   decideStatus,
   runSnapshot,
   type RunSnapshotOptions,

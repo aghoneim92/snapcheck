@@ -1,0 +1,7 @@
+{
+  "grafana": {
+    "repo": "https://github.com/grafana/grafana.git",
+    "tag": "v13.2.2",
+    "sha": "3db12332b66497c31f8ad2a5fb0eb0fe0ca05a7e"
+  }
+}

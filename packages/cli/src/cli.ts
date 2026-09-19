@@ -2,6 +2,8 @@
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 
+import { FixtureMismatchError } from '@snapcheck/capture';
+
 import { runApprove } from './commands/approve.ts';
 import { runSnapshotCommand } from './commands/snapshot.ts';
 import { ConfigError, findConfig, loadConfig } from './config.ts';
@@ -29,6 +31,8 @@ Options:
   --concurrency <n>      Pages captured in parallel
   --filter <glob>        Only stories whose id matches
   --runs <n>             Determinism mode: capture n times, require identical
+  --http-cache <mode>    External requests: record, replay or bypass
+                         (default: replay when a cache exists, else bypass)
   --no-<harness-flag>    Turn one harness technique off, e.g. --no-hide-caret
 `;
 
@@ -48,6 +52,7 @@ export async function main(argv: string[]): Promise<number> {
       concurrency: { type: 'string' },
       filter: { type: 'string' },
       runs: { type: 'string' },
+      'http-cache': { type: 'string' },
       'no-reduced-motion': { type: 'boolean', default: false },
       'no-freeze-animations': { type: 'boolean', default: false },
       'no-wait-for-fonts': { type: 'boolean', default: false },
@@ -84,6 +89,12 @@ export async function main(argv: string[]): Promise<number> {
 main(process.argv.slice(2)).then(
   (code) => process.exit(code),
   (error: unknown) => {
+    // Loud, and exit 2 rather than 1: the baselines are invalid, which is not
+    // the same thing as the design system having changed.
+    if (error instanceof FixtureMismatchError) {
+      console.error(`\n!! FIXTURE CHANGED — NOT A VISUAL REGRESSION\n\n${error.message}\n`);
+      process.exit(2);
+    }
     if (error instanceof ConfigError) {
       console.error(error.message);
       process.exit(2);

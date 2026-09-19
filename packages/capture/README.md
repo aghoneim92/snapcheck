@@ -48,6 +48,7 @@ export default defineConfig({
     'forms-*': { waitFor: '.ready' },
   },
   index: { excludeTags: [], requireTestTag: true },
+  httpCache: { mode: 'replay' },
 });
 ```
 
@@ -133,6 +134,73 @@ the GitHub Actions runner has no GPU anyway. When a story cannot be stabilized,
 quarantine that story — never raise the global threshold to accommodate a
 handful, because that blinds every other story.
 
+## External requests: HTTP record/replay
+
+A story that loads a webfont from a CDN, an avatar from a bucket or data from
+an API is nondeterministic in exactly the way this harness exists to remove,
+and often it cannot be fixed at source. snapcheck can record every response
+from outside the static build once and replay it on every run after that, with
+the network switched off. That is also what lets capture run air-gapped.
+
+```sh
+snapcheck snapshot --http-cache record   # fetch and store every external response
+snapcheck snapshot                        # replays: the default once a cache exists
+snapcheck snapshot --http-cache bypass   # live network, no cache (the old behaviour)
+```
+
+or `httpCache: { mode, dir }` in config. The cache lives in
+`.snapcheck/http-cache/<fixture>/` (gitignored), `default` for an ordinary
+build: `manifest.json` maps each request to its status, headers, content type,
+size and body hash, and bodies are stored once each, by content, in `blobs/`.
+
+What each mode guarantees:
+
+- **record** fetches each request once and serves every later request for the
+  same method and URL from what it stored. A response that differs per request,
+  like a random avatar, is frozen at its first value. A capture does not
+  proceed while a response it asked for is still being recorded, and one that
+  cannot be recorded fails that capture by URL. A recording run still waits on
+  the real network, so **take baselines in replay**, not from the recording run.
+- **replay** serves only from the cache. Outbound networking is off at the
+  browser, not just unrouted, so service-worker fetches and WebSockets cannot
+  reach the network either. A request with no cached response **fails that
+  story's capture and names the URL**; there is no passthrough, because one
+  uncached request is one flake source.
+- **bypass** uses the live network, as snapcheck did before the cache existed.
+
+Requests to the static build itself are never cached — the build is what is
+under test.
+
+**Baselines record which cache they came from.** The environment fingerprint
+gains the cache mode and a hash of everything the cache serves, so comparing
+against baselines captured from the live network, or from a different
+recording, is warned about as an environment change rather than reported as a
+visual one. Headers are part of that hash, and a fresh recording almost always
+changes it (a `Date` header alone does): re-recording means re-baselining.
+
+What "replays byte-identically" means precisely: bodies are the exact bytes the
+page consumed and headers are replayed verbatim, in order. Two things differ
+from the wire, both forced by how Chromium intercepts requests:
+
+- A compressed response is stored **decoded**, because that is how the browser
+  hands it over; its `content-encoding` header is replayed unchanged and
+  Chromium ignores it for intercepted bodies.
+- A **redirect is stored as its final response** under the requested URL.
+  Chromium does not intercept the follow-up request of a replayed redirect, so
+  replaying the 3xx itself would let that request escape the cache. The target
+  is kept as `finalUrl` in the manifest.
+
+Known limits:
+
+- Requests are keyed by **method and URL only**. Two POSTs to one GraphQL
+  endpoint with different bodies share one cached response.
+- A request made **by a service worker** is blocked in replay but is not seen by
+  the cache, so it is not named as a miss: the story renders without it rather
+  than failing loudly. Stories using MSW are affected only for requests MSW
+  passes through to the network.
+- Repeated response headers other than `set-cookie` are folded into one
+  comma-separated header on replay; Playwright takes one value per name.
+
 ## Baselines are temporary, and environment-scoped
 
 Baselines live in a **gitignored `.snapcheck/baselines/`**, keyed by
@@ -148,8 +216,8 @@ review-by-PNG, which is a problem this product exists to solve.
 **Baselines only compare within one environment.** macOS and Linux will never
 produce identical pixels, and neither will GPU and software rendering. Every
 run records an environment fingerprint — OS, architecture, Chromium and
-Playwright versions, device scale factor, headless mode, and whether the GPU
-was active — and comparing against baselines captured under a different
+Playwright versions, device scale factor, headless mode, whether the GPU was
+active, and which HTTP cache served external requests — and comparing against baselines captured under a different
 fingerprint produces a loud warning rather than a diff reported as a visual
 change. That warning is the difference between "it passes locally and fails in
 CI" being a five-second diagnosis and an afternoon.
