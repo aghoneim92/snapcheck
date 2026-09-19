@@ -185,6 +185,27 @@ Current status on `ubuntu-24.04`: **62/62 captures stable across 10 runs**. The
 same fixture was 16/62 with a naive capture, 33/62 with animations frozen, and
 reached 62/62 once fonts and render completion were waited for.
 
+Read that number for what it is: one fixture, at one viewport, in one
+environment. `packages/core-ui` contains no images, dates, randomness, portals,
+CSS-in-JS class hashes or data fetching, so those flake sources are untested
+rather than handled.
+
+## Known gaps
+
+[KNOWN-GAPS.md](./KNOWN-GAPS.md) records what is incomplete, unvalidated or
+resting on a single fixture — as distinct from the deliberate non-goals below.
+The load-bearing ones:
+
+- Only one fixture has ever been captured, and only its v5 index has been read
+  from a real build; v3 and v4 are tested against hand-written fixtures.
+- The changed fraction is measured against the whole page, so a visible change
+  to a small control is a fraction of a percent. `minChangedPixels` guards it;
+  capturing the story element is the actual fix.
+- A GPU rasterization flake is open, not fixed, and CI cannot catch it because
+  the runner has no GPU.
+- `parameters.snapshot` in story files is not read; per-story settings come
+  from config globs only.
+
 ## Out of scope at M0
 
 No review server, no Postgres, no object storage, no Docker. No component
